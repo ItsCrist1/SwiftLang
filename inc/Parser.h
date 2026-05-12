@@ -1,0 +1,38 @@
+#ifndef SHELLANG_PARSER_H
+#define SHELLANG_PARSER_H
+
+#include <optional>
+
+#include "Error.h"
+#include "Node.h"
+#include "Token.h"
+
+using ParserOutput = std::variant<RootNode,ParserError>;
+
+struct Parser {
+    ParserOutput Parse(const std::vector<Token>&);
+
+private:
+    struct Context {
+        RootNode rootNode;
+        std::vector<Token> tokens;
+        std::optional<ParserError> error;
+        size_t idx = 0u;
+    };
+
+    [[nodiscard]] std::optional<Token> peek(const Context&, size_t offset=0u) const;
+    std::optional<Token> consume(Context&);
+
+    template<typename ... Ts>
+    [[nodiscard]] bool is(const Context&) const;
+
+    template<typename T>
+    T as(const Context&) const;
+
+    template<typename T>
+    bool expect(Context&) const;
+
+    std::optional<Node> parseCmd(Context& context, bool push=true);
+};
+
+#endif
