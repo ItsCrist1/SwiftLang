@@ -12,7 +12,7 @@ int Evaluator::Evaluate(const RootNode& rn) {
         }
 
         if(is<RedirectNode>(node))
-            processRedirect(as<RedirectNode>(node), context.OutputStream);
+            processRedirect(as<RedirectNode>(node), context.OutputStream, {});
     }
 
     return 0;
@@ -47,55 +47,58 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os) {
     return false;
 }
 
-void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os) {
+void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, const std::vector<Node>& args) {
     std::shared_ptr<Node> Source, Target;
 
     if(redirect.sign == Sign::RedirectLeft
     || redirect.sign == Sign::AppendLeft) {
-        Source = redirect.SideLeft;
-        Target = redirect.SideRight;
-    } else {
         Source = redirect.SideRight;
         Target = redirect.SideLeft;
+    } else {
+        Source = redirect.SideLeft;
+        Target = redirect.SideRight;
     }
 
     std::ostringstream source;
-    bool isFile = false;
 
     if(is<CmdNode>(*Source)) {
-        const CmdNode& cn = as<CmdNode>(*Source);
-
-        isFile = !processCmd(cn, source);
-        if(isFile) {
-            source.str("");
-            source << cn.cmd;
+        const auto& cn = as<CmdNode>(*Source);
+        auto combined = cn.args;
+        combined.insert(combined.end(), args.begin(), args.end());
+        if(!processCmd(CmdNode(cn.cmd, combined), source)) {
+            std::ifstream is (cn.cmd);
+            source << is.rdbuf();
+            is.close();
         }
     }
     else if(is<RedirectNode>(*Source))
-        processRedirect(as<RedirectNode>(*Source), source);
+        processRedirect(as<RedirectNode>(*Source), source, args);
 
     std::istringstream iss (source.str());
-    std::vector<Node> args;
+    std::vector<Node> targs;
 
     for(std::string t; iss >> t;)
-        args.emplace_back(ArgNode(t));
+        targs.emplace_back(ArgNode(t));
 
-    std::ofstream ofs;
+    bool isFile = false;
+    std::string fileName;
+
+    if(is<CmdNode>(*Target)) {
+        const std::string& cns = as<CmdNode>(*Target).cmd;
+
+        isFile = !processCmd(CmdNode{cns, targs}, os);
+
+        if(isFile)
+            fileName = cns;
+    }
+    else if(is<RedirectNode>(*Target))
+        processRedirect(as<RedirectNode>(*Target), os, targs);
 
     if(isFile) {
         const bool append = redirect.sign == Sign::AppendLeft || redirect.sign == Sign::AppendRight;
-        ofs.open(source.str(), append ? std::ios::app : std::ios::out);
-    }
+        std::ofstream ofs (fileName, append ? std::ios::app : std::ios::out);
 
-    if(is<CmdNode>(*Target)) {
-        processCmd(CmdNode{as<CmdNode>(*Target).cmd, args}, isFile ? ofs : os);
-        return;
+        ofs << source.str();
+        ofs.close();
     }
-
-    if(is<RedirectNode>(*Target)) {
-        processRedirect(as<RedirectNode>(*Target), isFile ? ofs : os);
-        return;
-    }
-
-    ofs.close();
 }

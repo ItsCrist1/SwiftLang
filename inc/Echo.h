@@ -9,4 +9,4 @@ struct Echo : ICmd {
     }
 };
 
-#endif //SHELLANG_ECHO_H
+#endif

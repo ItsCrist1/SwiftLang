@@ -21,7 +21,7 @@ private:
     const T& as(const Node&) const;
 
     bool processCmd(const CmdNode&, std::ostream&);
-    void processRedirect(const RedirectNode&, std::ostream&);
+    void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&);
 };
 
 #endif

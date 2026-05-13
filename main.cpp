@@ -16,7 +16,7 @@ int main(const int argc, const char* argv[]) {
         oss << argv[i] << ' ';
 
     Lexer lexer;
-    const LexerOutput lexedTokens = lexer.Lex("test.txt < eh < pp");
+    const LexerOutput lexedTokens = lexer.Lex("eh < test.txt");
 
     Parser parser;
     const ParserOutput rootNode = parser.Parse(std::get<std::vector<Token>>(lexedTokens));
