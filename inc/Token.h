@@ -13,6 +13,13 @@ struct KeywordToken {
     explicit KeywordToken(std::string_view);
 };
 
+struct VariableToken {
+    static constexpr char SIGN = '$';
+
+    std::string name;
+    explicit VariableToken(std::string_view);
+};
+
 struct NumericToken {
     static constexpr char DECIMAL_CHAR = '.';
     static constexpr std::string_view NUMBER_EXCEPTIONS = "_";
@@ -98,6 +105,7 @@ struct NewlineToken {
 
 using TokenValue = std::variant<
     KeywordToken,
+    VariableToken,
     NumericToken,
     StringToken,
     ParenthesesToken,

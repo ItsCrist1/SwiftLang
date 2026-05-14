@@ -50,6 +50,14 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
+    if(c == VariableToken::SIGN) {
+        if(context.varMode)
+            context.error = LexerError("Variable identifier found in variable mode", context.x, context.y);
+
+        context.varMode = true;
+        return;
+    }
+
     if(std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c)) {
         context.currentState = Context::State::Keyword;
         context.target = c;
@@ -116,7 +124,11 @@ void Lexer::keywordPattern(const char c, Context& context) {
         return;
     }
 
-    context.tokens.emplace_back(KeywordToken(context.target), context.startX, context.startY);
+    if(context.varMode)
+        context.tokens.emplace_back(VariableToken(context.target), context.startX, context.startY);
+    else
+        context.tokens.emplace_back(KeywordToken(context.target), context.startX, context.startY);
+
     resetState(context);
 }
 
@@ -202,6 +214,8 @@ void Lexer::resetState(Context& context) {
     context.currentState = Context::State::Search;
     --context.idx;
     --context.x;
+
+    context.varMode = false;
 }
 
 void Lexer::resetStart(Context& context) {

@@ -22,6 +22,8 @@ private:
 
     bool processCmd(const CmdNode&, std::ostream&);
     void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&);
+
+    std::string_view getVar(const std::string&) const;
 };
 
 #endif

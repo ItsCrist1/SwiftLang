@@ -19,6 +19,10 @@ struct CmdNode {
     std::vector<Node> args;
 };
 
+struct VarNode {
+    std::string var;
+};
+
 struct ArgNode {
     std::string arg;
 };
@@ -30,6 +34,7 @@ struct RedirectNode {
 
 using NodeValue = std::variant <
     CmdNode,
+    VarNode,
     ArgNode,
     RedirectNode
 >;

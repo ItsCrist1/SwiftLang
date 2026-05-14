@@ -27,7 +27,7 @@ private:
         std::vector<Token> tokens;
         std::string target;
         size_t idx = 0;
-        bool wasEscaped = false;
+        bool wasEscaped = false, varMode = false;
     };
 
     static constexpr char FUNNEL_END_CHAR = '\0';

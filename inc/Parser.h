@@ -18,6 +18,7 @@ private:
         std::vector<Token> tokens;
         std::optional<ParserError> error;
         size_t idx = 0u;
+        std::shared_ptr<Node> lastNode;
     };
 
     [[nodiscard]] std::optional<Token> peek(const Context&, size_t offset=0u) const;
@@ -33,6 +34,7 @@ private:
     bool expect(Context&) const;
 
     std::optional<Node> parseCmd(Context& context, bool push=true);
+    void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
 };
 
 #endif

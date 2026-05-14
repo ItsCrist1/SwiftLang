@@ -37,6 +37,11 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os) {
             args.emplace_back(as<ArgNode>(node).arg);
             continue;
         }
+
+        if(is<VarNode>(node)) {
+            args.emplace_back(getVar(as<VarNode>(node).var));
+            continue;
+        }
     }
 
     if(const auto it=context.Commands.find(cmd.cmd); it != context.Commands.end()) {
@@ -70,9 +75,10 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
             source << is.rdbuf();
             is.close();
         }
-    }
-    else if(is<RedirectNode>(*Source))
+    } else if(is<RedirectNode>(*Source))
         processRedirect(as<RedirectNode>(*Source), source, args);
+    else if(is<VarNode>(*Source))
+        source << getVar(as<VarNode>(*Source).var);
 
     std::istringstream iss (source.str());
     std::vector<Node> targs;
@@ -101,4 +107,11 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         ofs << source.str();
         ofs.close();
     }
+}
+
+std::string_view Evaluator::getVar(const std::string& var) const {
+    if(const auto it=context.Variables.find(var); it != context.Variables.end())
+        return it->second;
+
+    return "";
 }

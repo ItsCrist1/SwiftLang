@@ -19,6 +19,21 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
             if(parseCmd(context))
                 continue;
         }
+
+        if(is<SignToken>(context)) {
+            const Token token = *peek(context);
+            parseRedirect(context, context.lastNode, true, token.x, token.y);
+            continue;
+        }
+
+        if(is<VariableToken>(context)) {
+            const Token token = *peek(context);
+            context.rootNode.nodes.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
+            consume(context);
+            continue;
+        }
+
+        consume(context);
     }
 
     return std::move(context.rootNode);
@@ -35,6 +50,8 @@ std::optional<Token> Parser::consume(Context& context) {
 
     if(token)
         ++context.idx;
+
+    context.lastNode = std::make_shared<Node>(context.rootNode.nodes.back());
 
     return token;
 }
@@ -67,41 +84,59 @@ bool Parser::expect(Context& context) const {
 }
 
 std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
-    if(!expect<KeywordToken>(context))
+    if(!is<KeywordToken>(context))
         return std::nullopt;
 
     const Token token = *peek(context);
 
-    CmdNode cn{as<KeywordToken>(context).cmd};
+    auto cn = CmdNode(as<KeywordToken>(context).cmd);
     consume(context);
 
-    while(is<KeywordToken>(context)) {
-        cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), token.x, token.y);
+    while(is<KeywordToken,VariableToken>(context)) {
+        if(is<KeywordToken>(context))
+            cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), token.x, token.y);
+        else
+            cn.args.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
+
         consume(context);
     }
 
     if(is<SignToken>(context)) {
-        const Sign sign = as<SignToken>(context).sign;
-        consume(context);
-
-        if(auto scn = parseCmd(context, false)) {
-            auto rn = RedirectNode {
-                std::make_shared<Node>(std::move(cn)),
-                std::make_shared<Node>(std::move(*scn)),
-                sign
-            };
-
-            if(push) {
-                context.rootNode.nodes.emplace_back(std::move(rn), token.x, token.y);
-                return std::nullopt;
-            }
-
-            return Node(std::move(rn), token.x, token.y);
-        }
+        parseRedirect(context, std::make_shared<Node>(cn), push, token.x, token.y);
+        return Node(std::move(cn), token.x, token.y);
     }
 
     if(push)
         context.rootNode.nodes.emplace_back(std::move(cn), token.x, token.y);
 
     return Node(std::move(cn), token.x, token.y);
+}
+
+void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, const bool push, const size_t x, const size_t y) {
+    const Sign sign = as<SignToken>(context).sign;
+    consume(context);
+
+    if(auto scn = parseCmd(context, false)) {
+        auto rn = RedirectNode {
+            node,
+            std::make_shared<Node>(std::move(*scn)),
+            sign
+        };
+
+        if(push) {
+            context.rootNode.nodes.emplace_back(std::move(rn), x, y);
+            return;
+        }
+    }
+
+    if(is<VariableToken>(context)) {
+        auto rn = RedirectNode {
+            node,
+            std::make_shared<Node>(VarNode(as<VariableToken>(context).name)),
+            sign
+        };
+
+        context.rootNode.nodes.emplace_back(std::move(rn), x, y);
+        return;
+    }
 }
