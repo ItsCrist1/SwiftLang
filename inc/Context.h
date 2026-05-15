@@ -14,7 +14,6 @@ struct Context {
     std::istream& InputStream;
     std::ostream& OutputStream;
     std::string CurrentPath;
-    bool Running;
 
     explicit Context(
         std::unordered_map<std::string,std::shared_ptr<ICmd>> Commands = {},
@@ -30,8 +29,7 @@ struct Context {
         OutputStream(OutputStream),
         CurrentPath(CurrentPath.empty()
             ? std::filesystem::current_path().string()
-            : std::move(CurrentPath)),
-        Running(true)
+            : std::move(CurrentPath))
     {}
 };
 

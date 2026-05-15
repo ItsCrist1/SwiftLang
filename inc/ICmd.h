@@ -9,7 +9,9 @@
 struct Context;
 
 struct ICmd {
-    virtual void Run(std::vector<std::string> args, Context& context, std::istream&, std::ostream&) = 0;
+    static constexpr int EXIT_CODE = INT32_MAX;
+
+    virtual int Run(const std::vector<std::string>&, Context&, std::istream&, std::ostream&) = 0;
     virtual ~ICmd() = default;
 };
 

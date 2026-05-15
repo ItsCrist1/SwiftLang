@@ -4,15 +4,24 @@
 
 Evaluator::Evaluator(Context& context) : context(context) {}
 
-int Evaluator::Evaluate(const RootNode& rn) {
+EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
     for(const Node& node : rn.nodes) {
         if(is<CmdNode>(node)) {
-            processCmd(as<CmdNode>(node), context.OutputStream);
+            int rc = 0;
+            processCmd(as<CmdNode>(node), context.OutputStream, rc);
+
+            if(rc != 0)
+                return rc;
             continue;
         }
 
-        if(is<RedirectNode>(node))
-            processRedirect(as<RedirectNode>(node), context.OutputStream, {});
+        if(is<RedirectNode>(node)) {
+            int rc = 0;
+            processRedirect(as<RedirectNode>(node), context.OutputStream, {}, rc);
+
+            if(rc != 0)
+                return rc;
+        }
     }
 
     return 0;
@@ -28,7 +37,7 @@ const T& Evaluator::as(const Node& node) const {
     return std::get<T>(node.value);
 }
 
-bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os) {
+bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode) {
     std::vector<std::string> args;
     args.reserve(cmd.args.size());
 
@@ -45,14 +54,14 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os) {
     }
 
     if(const auto it=context.Commands.find(cmd.cmd); it != context.Commands.end()) {
-        it->second->Run(args, context, context.InputStream, os);
+        returnCode = it->second->Run(args, context, context.InputStream, os);
         return true;
     }
 
     return false;
 }
 
-void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, const std::vector<Node>& args) {
+void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, const std::vector<Node>& args, int& returnCode) {
     std::shared_ptr<Node> Source, Target;
 
     if(redirect.sign == Sign::RedirectLeft
@@ -70,13 +79,13 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         const auto& cn = as<CmdNode>(*Source);
         auto combined = cn.args;
         combined.insert(combined.end(), args.begin(), args.end());
-        if(!processCmd(CmdNode(cn.cmd, combined), source)) {
+        if(!processCmd(CmdNode(cn.cmd, combined), source, returnCode)) {
             std::ifstream is (cn.cmd);
             source << is.rdbuf();
             is.close();
         }
     } else if(is<RedirectNode>(*Source))
-        processRedirect(as<RedirectNode>(*Source), source, args);
+        processRedirect(as<RedirectNode>(*Source), source, args, returnCode);
     else if(is<VarNode>(*Source))
         source << getVar(as<VarNode>(*Source).var);
 
@@ -92,13 +101,13 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
     if(is<CmdNode>(*Target)) {
         const std::string& cns = as<CmdNode>(*Target).cmd;
 
-        isFile = !processCmd(CmdNode{cns, targs}, os);
+        isFile = !processCmd(CmdNode{cns, targs}, os, returnCode);
 
         if(isFile)
             fileName = cns;
     }
     else if(is<RedirectNode>(*Target))
-        processRedirect(as<RedirectNode>(*Target), os, targs);
+        processRedirect(as<RedirectNode>(*Target), os, targs, returnCode);
 
     if(isFile) {
         const bool append = redirect.sign == Sign::AppendLeft || redirect.sign == Sign::AppendRight;

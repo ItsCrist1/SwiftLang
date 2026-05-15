@@ -1,11 +1,12 @@
-#ifndef SHELLANG_PATHPRINT_H
-#define SHELLANG_PATHPRINT_H
-
+#ifndef SHELLANG_CLEAR_H
+#define SHELLANG_CLEAR_H
 #include "ICmd.h"
 
-struct PathPrint : ICmd {
+struct Clear : ICmd {
+    static constexpr std::string CLEAR_ANSI = "\033[2J\033[H";
+
     int Run(const std::vector<std::string>& args, Context& context, std::istream& is, std::ostream& os) override {
-        os << context.CurrentPath;
+        os << CLEAR_ANSI;
         return 0;
     }
 };

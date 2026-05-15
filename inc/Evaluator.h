@@ -4,12 +4,15 @@
 #include <sstream>
 
 #include "Context.h"
+#include "Error.h"
 #include "Node.h"
+
+using EvaluatorOutput = std::variant<int, EvaluatorError>;
 
 struct Evaluator {
     explicit Evaluator(Context&);
 
-    int Evaluate(const RootNode&);
+    EvaluatorOutput Evaluate(const RootNode&);
 
 private:
     Context& context;
@@ -20,10 +23,10 @@ private:
     template<typename T>
     const T& as(const Node&) const;
 
-    bool processCmd(const CmdNode&, std::ostream&);
-    void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&);
+    bool processCmd(const CmdNode&, std::ostream&, int&);
+    void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&, int&);
 
-    std::string_view getVar(const std::string&) const;
+    [[nodiscard]] std::string_view getVar(const std::string&) const;
 };
 
 #endif
