@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 23)
 add_compile_options(-fsanitize=address -g)
 add_link_options(-fsanitize=address)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Include Files
 include_directories(inc)
 
