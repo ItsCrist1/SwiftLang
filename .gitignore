@@ -2,3 +2,5 @@
 .idea/
 .claude/
 cmake-build-debug/
+build/
+.cache/

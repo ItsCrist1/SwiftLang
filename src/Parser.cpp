@@ -51,7 +51,8 @@ std::optional<Token> Parser::consume(Context& context) {
     if(token)
         ++context.idx;
 
-    context.lastNode = std::make_shared<Node>(context.rootNode.nodes.back());
+    if(!context.rootNode.nodes.empty())
+        context.lastNode = std::make_shared<Node>(context.rootNode.nodes.back());
 
     return token;
 }
@@ -93,10 +94,12 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
     consume(context);
 
     while(is<KeywordToken,VariableToken>(context)) {
+        const Token targ = *peek(context);
+
         if(is<KeywordToken>(context))
-            cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), token.x, token.y);
+            cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
         else
-            cn.args.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
+            cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
 
         consume(context);
     }
@@ -137,6 +140,7 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
         };
 
         context.rootNode.nodes.emplace_back(std::move(rn), x, y);
+        consume(context);
         return;
     }
 }

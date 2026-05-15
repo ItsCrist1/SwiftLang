@@ -45,6 +45,7 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         else {
             context.currentState = Context::State::Keyword;
             context.target = c;
+            resetStart(context);
         }
 
         return;
