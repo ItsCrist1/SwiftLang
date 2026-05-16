@@ -177,7 +177,7 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
     AlgebraicNode an;
     const Token first = *peek(context);
 
-    while(is<NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken>(context)) {
+    while(is<NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken>(context)) {
         an.tokens.emplace_back(*peek(context));
         consume(context);
     }

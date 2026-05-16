@@ -21,6 +21,8 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
 
             if(rc != 0)
                 return rc;
+
+            continue;
         }
 
         if(is<VarNode>(node)) {

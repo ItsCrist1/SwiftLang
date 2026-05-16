@@ -14,7 +14,7 @@ struct AlgebraicEvaluator {
 private:
     const int POW_PRECEDENCE = 2;
 
-    const std::unordered_map<AlgebraicOperator,int> PRECEDENCES = {
+    const std::unordered_map<AlgebraicOperator,int> OPERATOR_PRECEDENCES = {
         { AlgebraicOperator::Add, 0},
         { AlgebraicOperator::Sub, 0},
         { AlgebraicOperator::Mul, 1},
@@ -23,7 +23,15 @@ private:
         { AlgebraicOperator::Pow, POW_PRECEDENCE},
     };
 
+    const std::unordered_map<LogicalOperator,int> LOGICAL_PRECEDENCES = {
+        { LogicalOperator::Or, -3},
+        { LogicalOperator::And, -2},
+        { LogicalOperator::Equals, -1},
+        { LogicalOperator::NotEquals, -1},
+    };
+
     AlgebraicNode rearrange(const AlgebraicNode&);
+    int getPrecedence(const Token&);
 };
 
 #endif

@@ -32,6 +32,21 @@ double AlgebraicEvaluator::Evaluate(const AlgebraicNode &an) {
                 default: break;
             }
         }
+
+        if(std::holds_alternative<LogicalOperatorToken>(token.value)) {
+            const double num2 = stack.top();
+            stack.pop();
+            const double num1 = stack.top();
+            stack.pop();
+
+            switch(std::get<LogicalOperatorToken>(token.value).op) {
+                case LogicalOperator::And: stack.push(num1 && num2); break;
+                case LogicalOperator::Or: stack.push(num1 || num2); break;
+                case LogicalOperator::Equals: stack.push(num1 == num2); break;
+                case LogicalOperator::NotEquals: stack.push(num1 != num2); break;
+                default: break;
+            }
+        }
     }
 
     return stack.top();
@@ -47,20 +62,19 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
             continue;
         }
 
-        if(std::holds_alternative<AlgebraicOperatorToken>(t.value)) {
-            const auto aot = std::get<AlgebraicOperatorToken>(t.value);
-
+        if(std::holds_alternative<AlgebraicOperatorToken>(t.value)
+        || std::holds_alternative<LogicalOperatorToken>(t.value)) {
             while(!stack.empty() && !std::holds_alternative<ParenthesesToken>(stack.top().value)
-                && (PRECEDENCES.at(aot.op)
-                < PRECEDENCES.at(std::get<AlgebraicOperatorToken>(stack.top().value).op)
-            || PRECEDENCES.at(aot.op)
-                == PRECEDENCES.at(std::get<AlgebraicOperatorToken>(stack.top().value).op)
-                && PRECEDENCES.at(aot.op) < POW_PRECEDENCE)) {
+            && (getPrecedence(t) < getPrecedence(stack.top())
+                || (getPrecedence(t) == getPrecedence(stack.top())
+                    && getPrecedence(t) < POW_PRECEDENCE))) {
                 output.tokens.push_back(stack.top());
                 stack.pop();
             }
 
             stack.emplace(t);
+
+            continue;
         }
 
         if(std::holds_alternative<VariableToken>(t.value)) {
@@ -77,6 +91,8 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
                     stack.pop();
                 }
             }
+
+            continue;
         }
     }
 
@@ -86,4 +102,12 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
     }
 
     return output;
+}
+
+int AlgebraicEvaluator::getPrecedence(const Token& t) {
+    if(std::holds_alternative<AlgebraicOperatorToken>(t.value))
+        return OPERATOR_PRECEDENCES.at(std::get<AlgebraicOperatorToken>(t.value).op);
+
+    if(std::holds_alternative<LogicalOperatorToken>(t.value))
+        return LOGICAL_PRECEDENCES.at(std::get<LogicalOperatorToken>(t.value).op);
 }
