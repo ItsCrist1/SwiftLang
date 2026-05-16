@@ -48,7 +48,7 @@ struct ParenthesesToken {
     explicit ParenthesesToken(Parentheses);
 };
 
-enum class AlgebraicOperator { Add, Sub, Mul, Div, Mod, Pow };
+enum class AlgebraicOperator { Add, Sub, Mul, Div, Mod, Pow, None };
 
 struct AlgebraicOperatorToken {
     inline static const std::unordered_map<char, AlgebraicOperator> OPERATORS = {
