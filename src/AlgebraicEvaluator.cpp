@@ -50,7 +50,8 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
         if(std::holds_alternative<AlgebraicOperatorToken>(t.value)) {
             const auto aot = std::get<AlgebraicOperatorToken>(t.value);
 
-            while(!stack.empty() && (PRECEDENCES.at(aot.op)
+            while(!stack.empty() && !std::holds_alternative<ParenthesesToken>(stack.top().value)
+                && (PRECEDENCES.at(aot.op)
                 < PRECEDENCES.at(std::get<AlgebraicOperatorToken>(stack.top().value).op)
             || PRECEDENCES.at(aot.op)
                 == PRECEDENCES.at(std::get<AlgebraicOperatorToken>(stack.top().value).op)
@@ -65,6 +66,17 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
         if(std::holds_alternative<VariableToken>(t.value)) {
             output.tokens.emplace_back(NumericToken(std::stod(context.Variables.at(std::get<VariableToken>(t.value).name))));
             continue;
+        }
+
+        if(std::holds_alternative<ParenthesesToken>(t.value)) {
+            if(std::get<ParenthesesToken>(t.value).value == Parentheses::FuncOpen) {
+                stack.push(t);
+            } else {
+                while(!std::holds_alternative<ParenthesesToken>(stack.top().value)) {
+                    output.tokens.push_back(stack.top());
+                    stack.pop();
+                }
+            }
         }
     }
 

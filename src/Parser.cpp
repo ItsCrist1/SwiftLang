@@ -35,7 +35,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
             continue;
         }
 
-        if(is<NumericToken>(context)) {
+        if(is<NumericToken,ParenthesesToken>(context)) {
             parseAlgebraicExpression(context);
             continue;
         }
@@ -161,7 +161,7 @@ void Parser::parseVar(Context& context) {
 void Parser::parseAlgebraicExpression(Context& context) {
     AlgebraicNode an;
 
-    while(is<NumericToken,AlgebraicOperatorToken,VariableToken>(context)) {
+    while(is<NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken>(context)) {
         an.tokens.emplace_back(*peek(context));
         consume(context);
     }
