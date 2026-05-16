@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-Evaluator::Evaluator(Context& context) : context(context) {}
+Evaluator::Evaluator(Context& context) : context(context), calculator(context) {}
 
 EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
     for(const Node& node : rn.nodes) {
@@ -21,6 +21,11 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
 
             if(rc != 0)
                 return rc;
+        }
+
+        if(is<AlgebraicNode>(node)) {
+            context.OutputStream << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
+            continue;
         }
     }
 
@@ -49,6 +54,11 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
 
         if(is<VarNode>(node)) {
             args.emplace_back(getVar(as<VarNode>(node).var));
+            continue;
+        }
+
+        if(is<AlgebraicNode>(node)) {
+            args.emplace_back(std::to_string(calculator.Evaluate(as<AlgebraicNode>(node))));
             continue;
         }
     }
@@ -88,6 +98,8 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         processRedirect(as<RedirectNode>(*Source), source, args, returnCode);
     else if(is<VarNode>(*Source))
         source << getVar(as<VarNode>(*Source).var);
+    else if(is<AlgebraicNode>(*Source))
+        source << calculator.Evaluate(as<AlgebraicNode>(*Source));
 
     std::istringstream iss (source.str());
     std::vector<Node> targs;

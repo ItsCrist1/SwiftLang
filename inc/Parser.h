@@ -25,7 +25,7 @@ private:
     std::optional<Token> consume(Context&);
 
     template<typename ... Ts>
-    [[nodiscard]] bool is(const Context&) const;
+    [[nodiscard]] bool is(const Context&, size_t offset=0u) const;
 
     template<typename T>
     T as(const Context&) const;
@@ -35,6 +35,8 @@ private:
 
     std::optional<Node> parseCmd(Context& context, bool push=true);
     void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
+    void parseVar(Context&);
+    void parseAlgebraicExpression(Context&);
 };
 
 #endif

@@ -27,9 +27,16 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
         }
 
         if(is<VariableToken>(context)) {
-            const Token token = *peek(context);
-            context.rootNode.nodes.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
-            consume(context);
+            if(is<NumericToken,AlgebraicOperatorToken>(context,1))
+                parseAlgebraicExpression(context);
+            else
+                parseVar(context);
+
+            continue;
+        }
+
+        if(is<NumericToken>(context)) {
+            parseAlgebraicExpression(context);
             continue;
         }
 
@@ -58,8 +65,8 @@ std::optional<Token> Parser::consume(Context& context) {
 }
 
 template<typename ... Ts>
-bool Parser::is(const Context& context) const {
-    const std::optional<Token> token = peek(context);
+bool Parser::is(const Context& context, const size_t offset) const {
+    const std::optional<Token> token = peek(context, offset);
     return token.has_value() && (std::holds_alternative<Ts>(token.value().value) || ...);
 }
 
@@ -143,4 +150,21 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
         consume(context);
         return;
     }
+}
+
+void Parser::parseVar(Context& context) {
+    const Token token = *peek(context);
+    context.rootNode.nodes.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
+    consume(context);
+}
+
+void Parser::parseAlgebraicExpression(Context& context) {
+    AlgebraicNode an;
+
+    while(is<NumericToken,AlgebraicOperatorToken,VariableToken>(context)) {
+        an.tokens.emplace_back(*peek(context));
+        consume(context);
+    }
+
+    context.rootNode.nodes.emplace_back(an);
 }

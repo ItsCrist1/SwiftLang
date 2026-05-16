@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+#include "AlgebraicEvaluator.h"
 #include "Context.h"
 #include "Error.h"
 #include "Node.h"
@@ -16,6 +17,7 @@ struct Evaluator {
 
 private:
     Context& context;
+    AlgebraicEvaluator calculator;
 
     template<typename ... Ts>
     [[nodiscard]] bool is(const Node&) const;

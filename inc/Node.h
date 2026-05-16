@@ -32,11 +32,16 @@ struct RedirectNode {
     Sign sign;
 };
 
+struct AlgebraicNode {
+    std::vector<Token> tokens;
+};
+
 using NodeValue = std::variant <
     CmdNode,
     VarNode,
     ArgNode,
-    RedirectNode
+    RedirectNode,
+    AlgebraicNode
 >;
 
 struct Node {
