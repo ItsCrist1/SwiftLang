@@ -7,6 +7,7 @@ NumericToken::NumericToken(const double value) : value(value) {}
 StringToken::StringToken(const std::string_view value) : value(value) {}
 
 ParenthesesToken::ParenthesesToken(const Parentheses value) : value(value) {}
+SParenthesesToken::SParenthesesToken(const SParentheses value) : value(value) {}
 
 AlgebraicOperatorToken::AlgebraicOperatorToken(const AlgebraicOperator op) : op(op) {}
 LogicalOperatorToken::LogicalOperatorToken(const LogicalOperator op) : op(op) {}

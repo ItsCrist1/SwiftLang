@@ -84,6 +84,11 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
+    if(const auto it=SParenthesesToken::SPARENTHESES.find(c); it != SParenthesesToken::SPARENTHESES.end()) {
+        context.tokens.emplace_back(SParenthesesToken(it->second), context.x, context.y);
+        return;
+    }
+
     if(const auto it=AlgebraicOperatorToken::OPERATORS.find(c); it != AlgebraicOperatorToken::OPERATORS.end()) {
         context.tokens.emplace_back(AlgebraicOperatorToken(it->second), context.x, context.y);
         return;

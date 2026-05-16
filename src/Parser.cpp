@@ -40,6 +40,11 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
             continue;
         }
 
+        if(is<SParenthesesToken>(context)) {
+            processIf(context);
+            continue;
+        }
+
         consume(context);
     }
 
@@ -191,4 +196,33 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
         context.rootNode.nodes.emplace_back(an);
 
     return an;
+}
+
+void Parser::processIf(Context& context) {
+    consume(context);
+    AlgebraicNode condition = parseAlgebraicExpression(context, false);
+    consume(context);
+    consume(context);
+
+    int depth = 1;
+
+    std::vector<Token> body;
+
+    while(depth != 0) {
+        const Token t = *peek(context);
+
+        if(is<SParenthesesToken>(context)) {
+            const SParentheses spt = as<SParenthesesToken>(context).value;
+
+            if(spt == SParentheses::BodyOpen)
+                ++depth;
+            else if(spt == SParentheses::BodyClose)
+                --depth;
+        } else
+            body.push_back(t);
+
+        consume(context);
+    }
+
+    context.rootNode.nodes.emplace_back(IfNode(condition, std::get<RootNode>(Parse(body))));
 }

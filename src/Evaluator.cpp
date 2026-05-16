@@ -34,6 +34,11 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
             context.OutputStream << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
             continue;
         }
+
+        if(is<IfNode>(node)) {
+            processIf(as<IfNode>(node), context.OutputStream);
+            continue;
+        }
     }
 
     return 0;
@@ -151,4 +156,11 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
         it->second = val;
     else
         context.Variables.emplace(var, val);
+}
+
+void Evaluator::processIf(const IfNode& in, std::ostream& os) {
+    if(!calculator.Evaluate(in.condition))
+        return; // TODO: else cases
+
+    Evaluate(in.body);
 }
