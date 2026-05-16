@@ -27,6 +27,7 @@ private:
     void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&, int&);
 
     [[nodiscard]] std::string_view getVar(const std::string&) const;
+    void setVar(const std::string&, const std::string&);
 };
 
 #endif

@@ -108,6 +108,8 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
     }
     else if(is<RedirectNode>(*Target))
         processRedirect(as<RedirectNode>(*Target), os, targs, returnCode);
+    else if(is<VarNode>(*Target))
+        setVar(as<VarNode>(*Target).var, source.str());
 
     if(isFile) {
         const bool append = redirect.sign == Sign::AppendLeft || redirect.sign == Sign::AppendRight;
@@ -123,4 +125,11 @@ std::string_view Evaluator::getVar(const std::string& var) const {
         return it->second;
 
     return "";
+}
+
+void Evaluator::setVar(const std::string& var, const std::string& val) {
+    if(const auto it=context.Variables.find(var); it != context.Variables.end())
+        it->second = val;
+    else
+        context.Variables.emplace(var, val);
 }
