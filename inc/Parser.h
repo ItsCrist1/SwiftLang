@@ -36,7 +36,7 @@ private:
     std::optional<Node> parseCmd(Context& context, bool push=true);
     void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
     void parseVar(Context&);
-    void parseAlgebraicExpression(Context&);
+    AlgebraicNode parseAlgebraicExpression(Context&, bool push=true);
 };
 
 #endif

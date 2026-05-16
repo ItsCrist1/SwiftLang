@@ -23,6 +23,11 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
                 return rc;
         }
 
+        if(is<VarNode>(node)) {
+            context.OutputStream << getVar(as<VarNode>(node).var) << '\n';
+            continue;
+        }
+
         if(is<AlgebraicNode>(node)) {
             context.OutputStream << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
             continue;

@@ -100,15 +100,19 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
     auto cn = CmdNode(as<KeywordToken>(context).cmd);
     consume(context);
 
-    while(is<KeywordToken,VariableToken>(context)) {
+    while(is<KeywordToken,VariableToken,NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
         const Token targ = *peek(context);
 
-        if(is<KeywordToken>(context))
+        if(is<KeywordToken>(context)) {
             cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
-        else
+            consume(context);
+        }
+        else if(is<VariableToken>(context)) {
             cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
-
-        consume(context);
+            consume(context);
+        }
+        else
+            cn.args.emplace_back(parseAlgebraicExpression(context,false));
     }
 
     if(is<SignToken>(context)) {
@@ -150,6 +154,17 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
         consume(context);
         return;
     }
+
+    if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
+        auto rn = RedirectNode {
+            node,
+            std::make_shared<Node>(parseAlgebraicExpression(context,false)),
+            sign
+        };
+
+        context.rootNode.nodes.emplace_back(std::move(rn), x, y);
+        return;
+    }
 }
 
 void Parser::parseVar(Context& context) {
@@ -158,13 +173,22 @@ void Parser::parseVar(Context& context) {
     consume(context);
 }
 
-void Parser::parseAlgebraicExpression(Context& context) {
+AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push) {
     AlgebraicNode an;
+    const Token first = *peek(context);
 
     while(is<NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken>(context)) {
         an.tokens.emplace_back(*peek(context));
         consume(context);
     }
 
-    context.rootNode.nodes.emplace_back(an);
+    if(push && is<SignToken>(context)) {
+        parseRedirect(context, std::make_shared<Node>(an), push, first.x, first.y);
+        return an;
+    }
+
+    if(push)
+        context.rootNode.nodes.emplace_back(an);
+
+    return an;
 }
