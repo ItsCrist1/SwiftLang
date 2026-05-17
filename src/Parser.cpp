@@ -163,14 +163,30 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
     }
 
     if(is<VariableToken>(context)) {
-        auto rn = RedirectNode {
-            node,
-            std::make_shared<Node>(VarNode(as<VariableToken>(context).name)),
-            sign
-        };
+        RedirectNode rn;
+        bool doConsume = true;
+
+        if(is<NumericToken,AlgebraicOperatorToken>(context,1)) {
+            rn = RedirectNode {
+                node,
+                std::make_shared<Node>(parseAlgebraicExpression(context,false)),
+                sign
+            };
+
+            doConsume = false;
+        }
+        else
+            rn = RedirectNode {
+                node,
+                std::make_shared<Node>(VarNode(as<VariableToken>(context).name)),
+                sign
+            };
 
         context.rootNode.nodes.emplace_back(std::move(rn), x, y);
-        consume(context);
+
+        if(doConsume)
+            consume(context);
+
         return;
     }
 
