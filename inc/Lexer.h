@@ -26,12 +26,13 @@ private:
 
         std::vector<Token> tokens;
         std::string target;
-        size_t idx = 0;
-        bool wasEscaped = false, varMode = false;
+        size_t idx = 0, bidx = 0;
+        bool wasEscaped = false, varMode = false, pardonLp = false;
     };
 
     static constexpr char FUNNEL_END_CHAR = '\0';
     static constexpr std::string_view WHITESPACE = " \t";
+    static constexpr std::string_view SUB_ALLOWANCE_SYMBOLS = "-$( \t";
 
     static bool IsKeywordChar(char);
 

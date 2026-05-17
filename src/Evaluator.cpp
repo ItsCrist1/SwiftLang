@@ -171,7 +171,7 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
 
 void Evaluator::processIf(const IfNode& in, std::ostream& os) {
     if(!calculator.Evaluate(in.condition)) {
-        Evaluate(in.elseBody);
+        Evaluate(in.elseBody, &os);
         return;
     }
 

@@ -77,17 +77,21 @@ struct AlgebraicOperatorToken {
     explicit AlgebraicOperatorToken(AlgebraicOperator);
 };
 
-enum class LogicalOperator { And, Or, Equals, NotEquals, Not };
+enum class LogicalOperator { And, Or, Equals, NotEquals, Not, Lesser, LesserEquals, Greater, GreaterEquals };
 
 struct LogicalOperatorToken {
-    static constexpr std::string_view ALL_LOGICAL_OPS = "&|=!";
+    static constexpr std::string_view ALL_LOGICAL_OPS = "&|=!<>_";
 
     static inline const std::unordered_map<std::string, LogicalOperator> LOGICAL_OPS = {
         { "&&", LogicalOperator::And },
         { "||", LogicalOperator::Or },
         { "==", LogicalOperator::Equals },
         { "!=", LogicalOperator::NotEquals },
-        { "!", LogicalOperator::Not}
+        { "!", LogicalOperator::Not },
+        { "<_", LogicalOperator::Lesser },
+        { "<=", LogicalOperator::LesserEquals },
+        { "_>", LogicalOperator::Greater },
+        { ">=", LogicalOperator::GreaterEquals }
     };
 
     LogicalOperator op;

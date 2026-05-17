@@ -40,7 +40,7 @@ void Lexer::pattern(const char c, const char cn, Context& context) {
 
 void Lexer::searchPattern(const char c, const char cn, Context& context) {
     if(c == '-') {
-        if(WHITESPACE.contains(cn))
+        if(std::isdigit(cn) || SUB_ALLOWANCE_SYMBOLS.contains(cn))
             context.tokens.emplace_back(AlgebraicOperatorToken(AlgebraicOperator::Sub), context.x, context.y);
         else {
             context.currentState = Context::State::Keyword;
@@ -94,10 +94,11 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(LogicalOperatorToken::ALL_LOGICAL_OPS.contains(c)) {
+    if(!context.pardonLp && LogicalOperatorToken::ALL_LOGICAL_OPS.contains(c)) {
         context.currentState = Context::State::Logical;
         context.target = c;
         resetStart(context);
+        context.bidx = context.idx;
         return;
     }
 
@@ -105,6 +106,7 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.currentState = Context::State::Sign;
         context.target = c;
         resetStart(context);
+        context.pardonLp = false;
         return;
     }
 
@@ -196,8 +198,9 @@ void Lexer::logicalPattern(const char c, Context& context) {
         context.tokens.emplace_back(LogicalOperatorToken(it->second), context.startX, context.startY);
         resetState(context);
     } else {
-        context.error = LexerError(std::format("Invalid logical operator: {}", context.target), context.startX, context.startY);
-        return;
+        context.idx = context.bidx - 1;
+        context.pardonLp = true;
+        resetState(context);
     }
 }
 

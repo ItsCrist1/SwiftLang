@@ -28,6 +28,10 @@ private:
         { LogicalOperator::And, -2},
         { LogicalOperator::Equals, -1},
         { LogicalOperator::NotEquals, -1},
+        { LogicalOperator::Lesser, -1},
+        { LogicalOperator::LesserEquals, -1},
+        { LogicalOperator::Greater, -1},
+        { LogicalOperator::GreaterEquals, -1},
     };
 
     AlgebraicNode rearrange(const AlgebraicNode&);

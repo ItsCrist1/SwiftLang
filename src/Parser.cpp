@@ -51,7 +51,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
             continue;
         }
 
-        if(is<NumericToken,ParenthesesToken>(context)) {
+        if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
             parseAlgebraicExpression(context);
             continue;
         }
