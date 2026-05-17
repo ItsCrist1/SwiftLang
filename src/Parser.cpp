@@ -239,6 +239,13 @@ IfNode Parser::processIf(Context& context, const bool push) {
         elseBody
     );
 
+    const Token token = *peek(context);
+
+    if(is<SignToken>(context)) {
+        parseRedirect(context, std::make_shared<Node>(in), push, token.x, token.y);
+        return in;
+    }
+
     if(push)
         context.rootNode.nodes.emplace_back(in);
 
@@ -252,7 +259,15 @@ void Parser::parseWhile(Context& context) {
 
     const std::vector<Token> body = getBody(context);
 
-    context.rootNode.nodes.emplace_back(WhileNode(condition, std::get<RootNode>(Parse(body))));
+    const auto wn = WhileNode(condition, std::get<RootNode>(Parse(body)));
+    const Token token = *peek(context);
+
+    if(is<SignToken>(context)) {
+        parseRedirect(context, std::make_shared<Node>(wn), true, token.x, token.y);
+        return;
+    }
+
+    context.rootNode.nodes.emplace_back(wn);
 }
 
 std::vector<Token> Parser::getBody(Context& context) {

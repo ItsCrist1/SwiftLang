@@ -4,11 +4,13 @@
 
 Evaluator::Evaluator(Context& context) : context(context), calculator(context) {}
 
-EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
+EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
+    std::ostream& usedOs = os != nullptr ? *os : context.OutputStream;
+
     for(const Node& node : rn.nodes) {
         if(is<CmdNode>(node)) {
             int rc = 0;
-            processCmd(as<CmdNode>(node), context.OutputStream, rc);
+            processCmd(as<CmdNode>(node), usedOs, rc);
 
             if(rc != 0)
                 return rc;
@@ -17,7 +19,7 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
 
         if(is<RedirectNode>(node)) {
             int rc = 0;
-            processRedirect(as<RedirectNode>(node), context.OutputStream, {}, rc);
+            processRedirect(as<RedirectNode>(node), usedOs, {}, rc);
 
             if(rc != 0)
                 return rc;
@@ -26,22 +28,22 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
         }
 
         if(is<VarNode>(node)) {
-            context.OutputStream << getVar(as<VarNode>(node).var) << '\n';
+            usedOs << getVar(as<VarNode>(node).var) << '\n';
             continue;
         }
 
         if(is<AlgebraicNode>(node)) {
-            context.OutputStream << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
+            usedOs << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
             continue;
         }
 
         if(is<IfNode>(node)) {
-            processIf(as<IfNode>(node), context.OutputStream);
+            processIf(as<IfNode>(node), usedOs);
             continue;
         }
 
         if(is<WhileNode>(node)) {
-            processWhile(as<WhileNode>(node), context.OutputStream);
+            processWhile(as<WhileNode>(node), usedOs);
             continue;
         }
     }
@@ -117,6 +119,10 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         source << getVar(as<VarNode>(*Source).var);
     else if(is<AlgebraicNode>(*Source))
         source << calculator.Evaluate(as<AlgebraicNode>(*Source));
+    else if(is<IfNode>(*Source))
+        processIf(as<IfNode>(*Source), source);
+    else if(is<WhileNode>(*Source))
+        processWhile(as<WhileNode>(*Source), source);
 
     std::istringstream iss (source.str());
     std::vector<Node> targs;
@@ -169,10 +175,10 @@ void Evaluator::processIf(const IfNode& in, std::ostream& os) {
         return;
     }
 
-    Evaluate(in.ifBody);
+    Evaluate(in.ifBody, &os);
 }
 
 void Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
     while(calculator.Evaluate(wn.condition))
-        Evaluate(wn.body);
+        Evaluate(wn.body, &os);
 }

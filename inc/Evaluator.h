@@ -13,7 +13,7 @@ using EvaluatorOutput = std::variant<int, EvaluatorError>;
 struct Evaluator {
     explicit Evaluator(Context&);
 
-    EvaluatorOutput Evaluate(const RootNode&);
+    EvaluatorOutput Evaluate(const RootNode&, std::ostream* os=nullptr);
 
 private:
     Context& context;
