@@ -17,8 +17,8 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
 
         if(is<KeywordToken>(context)) {
             if(as<KeywordToken>(context).cmd == "if") {
-                expect<SParenthesesToken>(context);
                 consume(context);
+                expect<SParenthesesToken>(context);
 
                 processIf(context);
                 continue;
@@ -238,7 +238,7 @@ std::vector<Token> Parser::getBody(Context& context) {
                 body.push_back(t);
             }
             else if(spt == SParentheses::BodyClose) {
-                if(--depth == 0) body.push_back(t);
+                if(--depth != 0) body.push_back(t);
             } else body.push_back(t);
         } else
             body.push_back(t);
