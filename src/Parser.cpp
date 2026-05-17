@@ -201,27 +201,37 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
     return an;
 }
 
-void Parser::processIf(Context& context) {
+IfNode Parser::processIf(Context& context, const bool push) {
     consume(context);
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
     consume(context);
 
     const std::vector<Token> ifBody = getBody(context);
-    std::vector<Token> elseBody;
+    RootNode elseBody;
 
     while(is<NewlineToken>(context))
         consume(context);
 
     if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "else") {
         consume(context);
-        elseBody = getBody(context);
+        if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "if") {
+            consume(context);
+            elseBody.nodes.emplace_back(processIf(context,false));
+        }
+        else
+            elseBody = std::get<RootNode>(Parse(getBody(context)));
     }
 
-    context.rootNode.nodes.emplace_back(IfNode(
+    const auto in = IfNode(
         condition,
         std::get<RootNode>(Parse(ifBody)),
-        std::get<RootNode>(Parse(elseBody))
-    ));
+        elseBody
+    );
+
+    if(push)
+        context.rootNode.nodes.emplace_back(in);
+
+    return in;
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
