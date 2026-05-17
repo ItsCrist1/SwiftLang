@@ -18,7 +18,7 @@ public:
     LexerOutput Lex(std::string_view);
 private:
     struct Context {
-        enum class State { Search, Keyword, Number, String, Logical, Sign };
+        enum class State { Search, Keyword, Number, String, Logical, Sign, Comment };
         State currentState = State::Search;
 
         std::optional<LexerError> error;
@@ -31,6 +31,7 @@ private:
     };
 
     static constexpr char FUNNEL_END_CHAR = '\0';
+    static constexpr char COMMENT_CHAR = '#';
     static constexpr std::string_view WHITESPACE = " \t";
     static constexpr std::string_view SUB_ALLOWANCE_SYMBOLS = "-$( \t";
 
@@ -44,6 +45,8 @@ private:
     void stringPattern(char, Context&);
     void logicalPattern(char, Context&);
     void signPattern(char, Context&);
+    void commentPattern(char, Context&);
+
     void resetState(Context&);
     void resetStart(Context&);
 };

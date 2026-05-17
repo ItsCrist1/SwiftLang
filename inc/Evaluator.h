@@ -30,7 +30,7 @@ private:
     EvaluatorOutput processIf(const IfNode&, std::ostream&);
     EvaluatorOutput processWhile(const WhileNode&, std::ostream&);
 
-    [[nodiscard]] std::string_view getVar(const std::string&) const;
+    [[nodiscard]] const std::string& getVar(const std::string&) const;
     void setVar(const std::string&, const std::string&);
 };
 

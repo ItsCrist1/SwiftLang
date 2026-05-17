@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 #include <format>
+#include <sstream>
 
 ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
     Context context;
@@ -116,11 +117,21 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
     auto cn = CmdNode(as<KeywordToken>(context).cmd);
     consume(context);
 
-    while(is<KeywordToken,VariableToken,NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
+    while(is<KeywordToken,StringToken,VariableToken,NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
         const Token targ = *peek(context);
 
         if(is<KeywordToken>(context)) {
             cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
+            consume(context);
+        }
+        else if(is<StringToken>(context)) {
+            const std::string& str = as<StringToken>(context).value;
+            std::istringstream iss (str.data());
+            ArgNode tan;
+
+            while(iss >> tan.arg)
+                cn.args.emplace_back(tan, targ.x, targ.y);
+
             consume(context);
         }
         else if(is<VariableToken>(context)) {

@@ -35,6 +35,7 @@ void Lexer::pattern(const char c, const char cn, Context& context) {
         case Context::State::String: stringPattern(c, context); break;
         case Context::State::Logical: logicalPattern(c, context); break;
         case Context::State::Sign: signPattern(c, context); break;
+        case Context::State::Comment: commentPattern(c, context); break;
     }
 }
 
@@ -75,6 +76,7 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
 
     if(c == StringToken::QUOTE_CHAR) {
         context.currentState = Context::State::String;
+        context.target = "";
         resetStart(context);
         return;
     }
@@ -116,6 +118,11 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.x = 0u;
         ++context.y;
 
+        return;
+    }
+
+    if(c == COMMENT_CHAR) {
+        context.currentState = Context::State::Comment;
         return;
     }
 
@@ -172,6 +179,7 @@ void Lexer::stringPattern(const char c, Context& context) {
 
         context.tokens.emplace_back(StringToken(context.target), context.startX, context.startY);
         resetState(context);
+        ++context.idx;
         return;
     }
 
@@ -217,6 +225,11 @@ void Lexer::signPattern(const char c, Context& context) {
         context.error = LexerError(std::format("Invalid sign: {}", context.target), context.startX, context.startY);
         return;
     }
+}
+
+void Lexer::commentPattern(const char c, Context& context) {
+    if(NewlineToken::NEWLINE_CHARS.contains(c))
+        resetState(context);
 }
 
 void Lexer::resetState(Context& context) {
