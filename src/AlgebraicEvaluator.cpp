@@ -101,6 +101,7 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
                     stack.pop();
                 }
 
+                stack.pop();
                 flushNeg();
             }
         }
