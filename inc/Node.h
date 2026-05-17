@@ -42,13 +42,19 @@ struct IfNode {
     RootNode elseBody;
 };
 
+struct WhileNode {
+    AlgebraicNode condition;
+    RootNode body;
+};
+
 using NodeValue = std::variant <
     CmdNode,
     VarNode,
     ArgNode,
     RedirectNode,
     AlgebraicNode,
-    IfNode
+    IfNode,
+    WhileNode
 >;
 
 struct Node {

@@ -39,6 +39,11 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn) {
             processIf(as<IfNode>(node), context.OutputStream);
             continue;
         }
+
+        if(is<WhileNode>(node)) {
+            processWhile(as<WhileNode>(node), context.OutputStream);
+            continue;
+        }
     }
 
     return 0;
@@ -165,4 +170,9 @@ void Evaluator::processIf(const IfNode& in, std::ostream& os) {
     }
 
     Evaluate(in.ifBody);
+}
+
+void Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
+    while(calculator.Evaluate(wn.condition))
+        Evaluate(wn.body);
 }

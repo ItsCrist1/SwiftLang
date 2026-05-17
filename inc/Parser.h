@@ -38,6 +38,7 @@ private:
     void parseVar(Context&);
     AlgebraicNode parseAlgebraicExpression(Context&, bool push=true);
     IfNode processIf(Context&, bool push=true);
+    void parseWhile(Context&);
 
     std::vector<Token> getBody(Context&);
 };

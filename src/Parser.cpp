@@ -24,6 +24,14 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 continue;
             }
 
+            if(as<KeywordToken>(context).cmd == "while") {
+                consume(context);
+                expect<SParenthesesToken>(context);
+
+                parseWhile(context);
+                continue;
+            }
+
             if(parseCmd(context))
                 continue;
         }
@@ -138,6 +146,9 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
     const Sign sign = as<SignToken>(context).sign;
     consume(context);
 
+    if(std::holds_alternative<VarNode>(node->value))
+        context.rootNode.nodes.pop_back();
+
     if(auto scn = parseCmd(context, false)) {
         auto rn = RedirectNode {
             node,
@@ -232,6 +243,16 @@ IfNode Parser::processIf(Context& context, const bool push) {
         context.rootNode.nodes.emplace_back(in);
 
     return in;
+}
+
+void Parser::parseWhile(Context& context) {
+    consume(context);
+    const AlgebraicNode condition = parseAlgebraicExpression(context, false);
+    consume(context);
+
+    const std::vector<Token> body = getBody(context);
+
+    context.rootNode.nodes.emplace_back(WhileNode(condition, std::get<RootNode>(Parse(body))));
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
