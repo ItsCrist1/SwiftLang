@@ -61,18 +61,21 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
     std::stack<Token> stack;
     bool wasOp = false, toAddSub = false;
 
+    auto flushNeg = [&]() {
+        if(toAddSub) {
+            output.tokens.emplace_back(NumericToken(-1));
+            output.tokens.emplace_back(AlgebraicOperatorToken(AlgebraicOperator::Mul));
+            toAddSub = false;
+        }
+    };
+
     for(const Token& t : an.tokens) {
         if((wasOp || output.tokens.empty()) && std::holds_alternative<AlgebraicOperatorToken>(t.value)
             && std::get<AlgebraicOperatorToken>(t.value).op == AlgebraicOperator::Sub)
             toAddSub = !toAddSub;
         else if(std::holds_alternative<NumericToken>(t.value)) {
             output.tokens.push_back(t);
-
-            if(toAddSub) {
-                output.tokens.emplace_back(NumericToken(-1));
-                output.tokens.emplace_back(AlgebraicOperatorToken(AlgebraicOperator::Mul));
-                toAddSub = false;
-            }
+            flushNeg();
         }
         else if(std::holds_alternative<AlgebraicOperatorToken>(t.value)
         || std::holds_alternative<LogicalOperatorToken>(t.value)) {
@@ -85,26 +88,27 @@ AlgebraicNode AlgebraicEvaluator::rearrange(const AlgebraicNode& an) {
             }
 
             stack.emplace(t);
-        } else if(std::holds_alternative<VariableToken>(t.value))
+        } else if(std::holds_alternative<VariableToken>(t.value)) {
             output.tokens.emplace_back(NumericToken(std::stod(context.Variables.at(std::get<VariableToken>(t.value).name))));
+            flushNeg();
+        }
         else if(std::holds_alternative<ParenthesesToken>(t.value)) {
-            if(std::get<ParenthesesToken>(t.value).value == Parentheses::FuncOpen) {
+            if(std::get<ParenthesesToken>(t.value).value == Parentheses::FuncOpen)
                 stack.push(t);
-            } else {
+            else {
                 while(!std::holds_alternative<ParenthesesToken>(stack.top().value)) {
                     output.tokens.push_back(stack.top());
                     stack.pop();
                 }
+
+                flushNeg();
             }
         }
 
         wasOp = std::holds_alternative<AlgebraicOperatorToken>(t.value);
     }
 
-    if(toAddSub) {
-        output.tokens.emplace_back(NumericToken(-1));
-        output.tokens.emplace_back(AlgebraicOperatorToken(AlgebraicOperator::Mul));
-    }
+    flushNeg();
 
     while(!stack.empty()) {
         output.tokens.push_back(stack.top());
