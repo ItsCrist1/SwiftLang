@@ -16,6 +16,14 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
         }
 
         if(is<KeywordToken>(context)) {
+            if(as<KeywordToken>(context).cmd == "if") {
+                consume(context);
+                expect<SParenthesesToken>(context);
+
+                processIf(context);
+                continue;
+            }
+
             if(parseCmd(context))
                 continue;
         }
@@ -191,4 +199,62 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
         context.rootNode.nodes.emplace_back(an);
 
     return an;
+}
+
+IfNode Parser::processIf(Context& context, const bool push) {
+    consume(context);
+    const AlgebraicNode condition = parseAlgebraicExpression(context, false);
+    consume(context);
+
+    const std::vector<Token> ifBody = getBody(context);
+    RootNode elseBody;
+
+    while(is<NewlineToken>(context))
+        consume(context);
+
+    if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "else") {
+        consume(context);
+        if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "if") {
+            consume(context);
+            elseBody.nodes.emplace_back(processIf(context,false));
+        }
+        else
+            elseBody = std::get<RootNode>(Parse(getBody(context)));
+    }
+
+    const auto in = IfNode(
+        condition,
+        std::get<RootNode>(Parse(ifBody)),
+        elseBody
+    );
+
+    if(push)
+        context.rootNode.nodes.emplace_back(in);
+
+    return in;
+}
+
+std::vector<Token> Parser::getBody(Context& context) {
+    int depth = 1;
+    std::vector<Token> body;
+
+    while(depth != 0) {
+        const Token t = *peek(context);
+
+        if(is<SParenthesesToken>(context)) {
+            if(const SParentheses spt = as<SParenthesesToken>(context).value;
+                spt == SParentheses::FuncClose) {
+                ++depth;
+                body.push_back(t);
+            }
+            else if(spt == SParentheses::BodyClose) {
+                if(--depth != 0) body.push_back(t);
+            } else body.push_back(t);
+        } else
+            body.push_back(t);
+
+        consume(context);
+    }
+
+    return body;
 }

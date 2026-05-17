@@ -48,6 +48,19 @@ struct ParenthesesToken {
     explicit ParenthesesToken(Parentheses);
 };
 
+enum class SParentheses { FuncOpen, FuncClose, BodyOpen, BodyClose };
+
+struct SParenthesesToken {
+    inline static const std::unordered_map<char, SParentheses> SPARENTHESES = {
+        { '[', SParentheses::FuncOpen },
+        { ']', SParentheses::FuncClose },
+        { '}', SParentheses::BodyClose }
+    };
+
+    SParentheses value;
+    explicit SParenthesesToken(SParentheses);
+};
+
 enum class AlgebraicOperator { Add, Sub, Mul, Div, Mod, Pow, None };
 
 struct AlgebraicOperatorToken {
@@ -109,6 +122,7 @@ using TokenValue = std::variant<
     NumericToken,
     StringToken,
     ParenthesesToken,
+    SParenthesesToken,
     AlgebraicOperatorToken,
     LogicalOperatorToken,
     SignToken,

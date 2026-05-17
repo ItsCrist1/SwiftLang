@@ -36,12 +36,19 @@ struct AlgebraicNode {
     std::vector<Token> tokens;
 };
 
+struct IfNode {
+    AlgebraicNode condition;
+    RootNode ifBody;
+    RootNode elseBody;
+};
+
 using NodeValue = std::variant <
     CmdNode,
     VarNode,
     ArgNode,
     RedirectNode,
-    AlgebraicNode
+    AlgebraicNode,
+    IfNode
 >;
 
 struct Node {
