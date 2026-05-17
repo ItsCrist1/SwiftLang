@@ -38,7 +38,8 @@ struct AlgebraicNode {
 
 struct IfNode {
     AlgebraicNode condition;
-    RootNode body;
+    RootNode ifBody;
+    RootNode elseBody;
 };
 
 using NodeValue = std::variant <

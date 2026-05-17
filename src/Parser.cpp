@@ -206,8 +206,26 @@ void Parser::processIf(Context& context) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
     consume(context);
 
-    int depth = 1;
+    const std::vector<Token> ifBody = getBody(context);
+    std::vector<Token> elseBody;
 
+    while(is<NewlineToken>(context))
+        consume(context);
+
+    if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "else") {
+        consume(context);
+        elseBody = getBody(context);
+    }
+
+    context.rootNode.nodes.emplace_back(IfNode(
+        condition,
+        std::get<RootNode>(Parse(ifBody)),
+        std::get<RootNode>(Parse(elseBody))
+    ));
+}
+
+std::vector<Token> Parser::getBody(Context& context) {
+    int depth = 1;
     std::vector<Token> body;
 
     while(depth != 0) {
@@ -215,15 +233,18 @@ void Parser::processIf(Context& context) {
 
         if(is<SParenthesesToken>(context)) {
             if(const SParentheses spt = as<SParenthesesToken>(context).value;
-                spt == SParentheses::FuncClose)
+                spt == SParentheses::FuncClose) {
                 ++depth;
-            else if(spt == SParentheses::BodyClose)
-                --depth;
+                body.push_back(t);
+            }
+            else if(spt == SParentheses::BodyClose) {
+                if(--depth == 0) body.push_back(t);
+            } else body.push_back(t);
         } else
             body.push_back(t);
 
         consume(context);
     }
 
-    context.rootNode.nodes.emplace_back(IfNode(condition, std::get<RootNode>(Parse(body))));
+    return body;
 }

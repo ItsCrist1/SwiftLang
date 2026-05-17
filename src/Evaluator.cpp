@@ -159,8 +159,10 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
 }
 
 void Evaluator::processIf(const IfNode& in, std::ostream& os) {
-    if(!calculator.Evaluate(in.condition))
-        return; // TODO: else cases
+    if(!calculator.Evaluate(in.condition)) {
+        Evaluate(in.elseBody);
+        return;
+    }
 
-    Evaluate(in.body);
+    Evaluate(in.ifBody);
 }
