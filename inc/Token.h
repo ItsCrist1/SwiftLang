@@ -54,7 +54,6 @@ struct SParenthesesToken {
     inline static const std::unordered_map<char, SParentheses> SPARENTHESES = {
         { '[', SParentheses::FuncOpen },
         { ']', SParentheses::FuncClose },
-        { '{', SParentheses::BodyOpen },
         { '}', SParentheses::BodyClose }
     };
 

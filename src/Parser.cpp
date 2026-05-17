@@ -16,6 +16,14 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
         }
 
         if(is<KeywordToken>(context)) {
+            if(as<KeywordToken>(context).cmd == "if") {
+                expect<SParenthesesToken>(context);
+                consume(context);
+
+                processIf(context);
+                continue;
+            }
+
             if(parseCmd(context))
                 continue;
         }
@@ -37,11 +45,6 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
 
         if(is<NumericToken,ParenthesesToken>(context)) {
             parseAlgebraicExpression(context);
-            continue;
-        }
-
-        if(is<SParenthesesToken>(context)) {
-            processIf(context);
             continue;
         }
 
@@ -200,8 +203,7 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
 
 void Parser::processIf(Context& context) {
     consume(context);
-    AlgebraicNode condition = parseAlgebraicExpression(context, false);
-    consume(context);
+    const AlgebraicNode condition = parseAlgebraicExpression(context, false);
     consume(context);
 
     int depth = 1;
@@ -212,9 +214,8 @@ void Parser::processIf(Context& context) {
         const Token t = *peek(context);
 
         if(is<SParenthesesToken>(context)) {
-            const SParentheses spt = as<SParenthesesToken>(context).value;
-
-            if(spt == SParentheses::BodyOpen)
+            if(const SParentheses spt = as<SParenthesesToken>(context).value;
+                spt == SParentheses::FuncClose)
                 ++depth;
             else if(spt == SParentheses::BodyClose)
                 --depth;
