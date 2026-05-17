@@ -14,6 +14,7 @@ struct Evaluator {
     explicit Evaluator(Context&);
 
     EvaluatorOutput Evaluate(const RootNode&, std::ostream* os=nullptr);
+    bool RunCmd(const CmdNode&, std::ostream&, int&);
 
 private:
     Context& context;

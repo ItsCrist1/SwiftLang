@@ -33,7 +33,7 @@ struct RedirectNode {
 };
 
 struct AlgebraicNode {
-    std::vector<Token> tokens;
+    std::vector<std::variant<Token,Node>> tns;
 };
 
 struct IfNode {

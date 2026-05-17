@@ -4,12 +4,19 @@
 #include "Context.h"
 #include "Node.h"
 
+#include <stack>
+#include <functional>
+
+struct Evaluator;
+
 struct AlgebraicEvaluator {
     Context& context;
 
     explicit AlgebraicEvaluator(Context&);
 
     double Evaluate(const AlgebraicNode&);
+
+    void setEvaluator(Evaluator*);
 
 private:
     const int POW_PRECEDENCE = 2;
@@ -34,7 +41,14 @@ private:
         { LogicalOperator::GreaterEquals, -1},
     };
 
+    Evaluator* evaluator = nullptr;
+
+    void evaluateToken(std::stack<double>&, const Token&);
+
     AlgebraicNode rearrange(const AlgebraicNode&);
+    void rearrangeToken(bool&, bool&, AlgebraicNode&, std::stack<Token>&, const Token&, const std::function<void()>&);
+    void rearrangeNode(bool&, AlgebraicNode&, const Node&, const std::function<void()>&);
+
     int getPrecedence(const Token&);
 };
 

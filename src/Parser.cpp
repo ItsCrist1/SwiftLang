@@ -223,8 +223,13 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
     AlgebraicNode an;
     const Token first = *peek(context);
 
-    while(is<NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken>(context)) {
-        an.tokens.emplace_back(*peek(context));
+    while(is<KeywordToken,NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken>(context)) {
+        if(is<KeywordToken>(context)) {
+            an.tns.emplace_back(*parseCmd(context, false));
+            continue;
+        }
+
+        an.tns.emplace_back(*peek(context));
         consume(context);
     }
 

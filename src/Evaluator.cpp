@@ -2,7 +2,9 @@
 
 #include <fstream>
 
-Evaluator::Evaluator(Context& context) : context(context), calculator(context) {}
+Evaluator::Evaluator(Context& context) : context(context), calculator(context) {
+    calculator.setEvaluator(this);
+}
 
 EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
     std::ostream& usedOs = os != nullptr ? *os : context.OutputStream;
@@ -55,6 +57,10 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
     }
 
     return 0;
+}
+
+bool Evaluator::RunCmd(const CmdNode& cn, std::ostream& os, int& n) {
+    return processCmd(cn, os, n);
 }
 
 template<typename... Ts>
