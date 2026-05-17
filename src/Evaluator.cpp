@@ -38,12 +38,18 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
         }
 
         if(is<IfNode>(node)) {
-            processIf(as<IfNode>(node), usedOs);
+            if(const auto res = processIf(as<IfNode>(node), usedOs);
+                std::holds_alternative<int>(res) && std::get<int>(res) != 0)
+                return res;
+
             continue;
         }
 
         if(is<WhileNode>(node)) {
-            processWhile(as<WhileNode>(node), usedOs);
+            if(const auto res = processWhile(as<WhileNode>(node), usedOs);
+            std::holds_alternative<int>(res) && std::get<int>(res) != 0)
+                return res;
+
             continue;
         }
     }
@@ -169,16 +175,18 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
         context.Variables.emplace(var, val);
 }
 
-void Evaluator::processIf(const IfNode& in, std::ostream& os) {
-    if(!calculator.Evaluate(in.condition)) {
-        Evaluate(in.elseBody, &os);
-        return;
-    }
+EvaluatorOutput Evaluator::processIf(const IfNode& in, std::ostream& os) {
+    if(!calculator.Evaluate(in.condition))
+        return Evaluate(in.elseBody, &os);
 
-    Evaluate(in.ifBody, &os);
+    return Evaluate(in.ifBody, &os);
 }
 
-void Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
+EvaluatorOutput Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
     while(calculator.Evaluate(wn.condition))
-        Evaluate(wn.body, &os);
+        if(const auto result = Evaluate(wn.body, &os);
+            std::holds_alternative<int>(result) && std::get<int>(result) != 0)
+            return result;
+
+    return 0;
 }

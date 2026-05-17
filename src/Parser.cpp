@@ -28,7 +28,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 consume(context);
                 expect<SParenthesesToken>(context);
 
-                parseWhile(context);
+                processWhile(context);
                 continue;
             }
 
@@ -255,9 +255,8 @@ IfNode Parser::processIf(Context& context, const bool push) {
         elseBody
     );
 
-    const Token token = *peek(context);
-
     if(is<SignToken>(context)) {
+        const Token token = *peek(context);
         parseRedirect(context, std::make_shared<Node>(in), push, token.x, token.y);
         return in;
     }
@@ -268,7 +267,7 @@ IfNode Parser::processIf(Context& context, const bool push) {
     return in;
 }
 
-void Parser::parseWhile(Context& context) {
+void Parser::processWhile(Context& context) {
     consume(context);
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
     consume(context);
@@ -276,9 +275,9 @@ void Parser::parseWhile(Context& context) {
     const std::vector<Token> body = getBody(context);
 
     const auto wn = WhileNode(condition, std::get<RootNode>(Parse(body)));
-    const Token token = *peek(context);
 
     if(is<SignToken>(context)) {
+        const Token token = *peek(context);
         parseRedirect(context, std::make_shared<Node>(wn), true, token.x, token.y);
         return;
     }
@@ -291,7 +290,9 @@ std::vector<Token> Parser::getBody(Context& context) {
     std::vector<Token> body;
 
     while(depth != 0) {
-        const Token t = *peek(context);
+        auto opt = peek(context);
+        if (!opt) break;
+        const Token t = *opt;
 
         if(is<SParenthesesToken>(context)) {
             if(const SParentheses spt = as<SParenthesesToken>(context).value;

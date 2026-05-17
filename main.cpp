@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 
 #include "Shell.h"
@@ -21,6 +22,17 @@ int main(const int argc, const char* argv[]) {
 
     if(argc == 1)
         return shell.StartREPL();
+
+    if(argc == 3 && std::string_view(argv[1]) == "--file") {
+        std::ifstream file(argv[2]);
+        if (!file) {
+            std::cerr << "Error: cannot open file '" << argv[2] << "'\n";
+            return 1;
+        }
+        std::ostringstream oss;
+        oss << file.rdbuf();
+        return shell.Evaluate(oss.str());
+    }
 
     std::ostringstream oss;
 

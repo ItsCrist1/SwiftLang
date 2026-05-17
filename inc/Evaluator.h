@@ -27,8 +27,8 @@ private:
 
     bool processCmd(const CmdNode&, std::ostream&, int&);
     void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&, int&);
-    void processIf(const IfNode&, std::ostream&);
-    void processWhile(const WhileNode&, std::ostream&);
+    EvaluatorOutput processIf(const IfNode&, std::ostream&);
+    EvaluatorOutput processWhile(const WhileNode&, std::ostream&);
 
     [[nodiscard]] std::string_view getVar(const std::string&) const;
     void setVar(const std::string&, const std::string&);
