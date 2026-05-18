@@ -60,13 +60,6 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c)) {
-        context.currentState = Context::State::Keyword;
-        context.target = c;
-        resetStart(context);
-        return;
-    }
-
     if(std::isdigit(c)) {
         context.currentState = Context::State::Number;
         context.target = c;
@@ -101,6 +94,13 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.target = c;
         resetStart(context);
         context.bidx = context.idx;
+        return;
+    }
+
+    if(std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c)) {
+        context.currentState = Context::State::Keyword;
+        context.target = c;
+        resetStart(context);
         return;
     }
 
