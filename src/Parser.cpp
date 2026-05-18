@@ -121,8 +121,12 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
         const Token targ = *peek(context);
 
         if(is<KeywordToken>(context)) {
-            cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
-            consume(context);
+            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
+                cn.args.emplace_back(parseAlgebraicExpression(context,false));
+            else {
+                cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
+                consume(context);
+            }
         }
         else if(is<StringToken>(context)) {
             const std::string& str = as<StringToken>(context).value;
@@ -135,8 +139,12 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
             consume(context);
         }
         else if(is<VariableToken>(context)) {
-            cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
-            consume(context);
+            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
+                cn.args.emplace_back(parseAlgebraicExpression(context, false));
+            else {
+                cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
+                consume(context);
+            }
         }
         else
             cn.args.emplace_back(parseAlgebraicExpression(context,false));

@@ -9,13 +9,15 @@
 #include "PathPrint.h"
 #include "Echo.h"
 #include "Exit.h"
+#include "PathChange.h"
 
 int main(const int argc, const char* argv[]) {
     Context context {{
         { "pp", std::make_shared<PathPrint>() },
-        { "eh", std::make_shared<Echo>() },
+        { "cp", std::make_shared<Echo>() },
         { "ce", std::make_shared<Exit>() },
-        { "cc", std::make_shared<Clear>() }
+        { "cc", std::make_shared<Clear>() },
+        { "pc", std::make_shared<PathChange>() }
     }};
 
     Shell shell (context);

@@ -84,11 +84,6 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(const auto it=AlgebraicOperatorToken::OPERATORS.find(c); it != AlgebraicOperatorToken::OPERATORS.end()) {
-        context.tokens.emplace_back(AlgebraicOperatorToken(it->second), context.x, context.y);
-        return;
-    }
-
     if(!context.pardonLp && LogicalOperatorToken::ALL_LOGICAL_OPS.contains(c)) {
         context.currentState = Context::State::Logical;
         context.target = c;
@@ -97,9 +92,11 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c)) {
+    if(!context.pardonPath &&
+    (std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c))) {
         context.currentState = Context::State::Keyword;
         context.target = c;
+        context.bidx = context.idx;
         resetStart(context);
         return;
     }
@@ -109,6 +106,12 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.target = c;
         resetStart(context);
         context.pardonLp = false;
+        return;
+    }
+
+    if(const auto it=AlgebraicOperatorToken::OPERATORS.find(c); it != AlgebraicOperatorToken::OPERATORS.end()) {
+        context.tokens.emplace_back(AlgebraicOperatorToken(it->second), context.x, context.y);
+        context.pardonPath = false;
         return;
     }
 
@@ -136,6 +139,13 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
 void Lexer::keywordPattern(const char c, Context& context) {
     if(IsKeywordChar(c)) {
         context.target.push_back(c);
+        return;
+    }
+
+    if(context.target == "/") {
+        context.idx = context.bidx;
+        context.pardonPath = true;
+        resetState(context);
         return;
     }
 
