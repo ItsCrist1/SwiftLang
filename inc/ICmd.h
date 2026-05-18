@@ -14,6 +14,8 @@ struct ICmd {
 
     virtual int Run(const std::vector<std::string>&, Context&, std::istream&, std::ostream&) = 0;
     virtual ~ICmd() = default;
+
+    const std::string resolvePath(std::string);
 };
 
 #endif

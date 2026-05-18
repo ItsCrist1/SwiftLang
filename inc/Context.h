@@ -8,6 +8,8 @@
 #include <memory>
 #include <iostream>
 
+struct ICmd;
+
 struct Context {
     std::unordered_map<std::string,std::shared_ptr<ICmd>> Commands;
     std::unordered_map<std::string,std::string> Variables;

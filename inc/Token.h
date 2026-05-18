@@ -7,7 +7,7 @@
 #include <string_view>
 
 struct KeywordToken {
-    static constexpr std::string_view KEYWORD_CHARS = "_-./\\";
+    static constexpr std::string_view KEYWORD_CHARS = "_-./\\~";
 
     std::string cmd;
     explicit KeywordToken(std::string_view);
