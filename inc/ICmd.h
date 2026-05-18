@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <filesystem>
 
 struct Context;
 
@@ -15,7 +16,15 @@ struct ICmd {
     virtual int Run(const std::vector<std::string>&, Context&, std::istream&, std::ostream&) = 0;
     virtual ~ICmd() = default;
 
-    const std::string resolvePath(std::string);
+    std::string getFlags(const std::vector<std::string>&);
+    std::vector<std::string> getDataArgs(const std::vector<std::string>&);
+
+    void changePath(const std::vector<std::string>&, Context&);
+    std::string resolvePath(std::string);
+
+    std::string getReadableSize(double);
+    double getFileSize(const std::filesystem::path&);
+    double getDirectorySize(const std::filesystem::path&);
 };
 
 #endif

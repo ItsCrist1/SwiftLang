@@ -10,6 +10,7 @@
 #include "Echo.h"
 #include "Exit.h"
 #include "PathChange.h"
+#include "UniversalList.h"
 
 int main(const int argc, const char* argv[]) {
     Context context {{
@@ -17,7 +18,8 @@ int main(const int argc, const char* argv[]) {
         { "cp", std::make_shared<Echo>() },
         { "ce", std::make_shared<Exit>() },
         { "cc", std::make_shared<Clear>() },
-        { "pc", std::make_shared<PathChange>() }
+        { "pc", std::make_shared<PathChange>() },
+        { "ul", std::make_shared<UniversalList>() }
     }};
 
     Shell shell (context);
