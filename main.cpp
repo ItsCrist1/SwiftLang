@@ -11,15 +11,20 @@
 #include "Exit.h"
 #include "PathChange.h"
 #include "UniversalList.h"
+#include "FileRead.h"
 
 int main(const int argc, const char* argv[]) {
     Context context {{
         { "pp", std::make_shared<PathPrint>() },
+        { "pc", std::make_shared<PathChange>() },
+
         { "cp", std::make_shared<Echo>() },
         { "ce", std::make_shared<Exit>() },
         { "cc", std::make_shared<Clear>() },
-        { "pc", std::make_shared<PathChange>() },
-        { "ul", std::make_shared<UniversalList>() }
+
+        { "fr", std::make_shared<FileRead>() },
+
+        { "ul", std::make_shared<UniversalList>() },
     }};
 
     Shell shell (context);

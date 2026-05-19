@@ -8,14 +8,13 @@ struct UniversalList : ICmd {
         const std::string flags = getFlags(args);
         bool showSize = false, doRecursive = false, separateNewline = false;
 
-        for(const char c : flags) {
+        for(const char c : flags)
             switch(c) {
                 case 's': showSize = true; break;
                 case 'r': doRecursive = true; break;
                 case 'n': separateNewline = true; break;
                 default: break;
             }
-        }
 
         std::vector<std::string> dataArgs = getDataArgs(args);
 
