@@ -41,13 +41,16 @@ struct UniversalList : ICmd {
             }
         };
 
-        for(const std::string& dataArg : dataArgs)
+        for(const std::string& dataArg : dataArgs) {
+            std::filesystem::path path = resolvePath(dataArg);
+
             if(!doRecursive)
-                for(const auto& e : std::filesystem::directory_iterator(dataArg))
+                for(const auto& e : std::filesystem::directory_iterator(path))
                     handle(e);
             else
-                for(const auto& e : std::filesystem::recursive_directory_iterator(dataArg))
+                for(const auto& e : std::filesystem::recursive_directory_iterator(path))
                     handle(e);
+        }
 
         return 0;
     }

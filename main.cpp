@@ -12,6 +12,7 @@
 #include "PathChange.h"
 #include "UniversalList.h"
 #include "FileRead.h"
+#include "UniversalRemove.h"
 
 int main(const int argc, const char* argv[]) {
     Context context {{
@@ -25,6 +26,7 @@ int main(const int argc, const char* argv[]) {
         { "fr", std::make_shared<FileRead>() },
 
         { "ul", std::make_shared<UniversalList>() },
+        { "ur", std::make_shared<UniversalRemove>() }
     }};
 
     Shell shell (context);
@@ -34,10 +36,12 @@ int main(const int argc, const char* argv[]) {
 
     if(argc == 3 && std::string_view(argv[1]) == "--file") {
         std::ifstream file(argv[2]);
-        if (!file) {
+
+        if(!file) {
             std::cerr << "Error: cannot open file '" << argv[2] << "'\n";
             return 1;
         }
+
         std::ostringstream oss;
         oss << file.rdbuf();
         return shell.Evaluate(oss.str());

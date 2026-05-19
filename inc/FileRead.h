@@ -17,13 +17,13 @@ struct FileRead : ICmd {
         std::vector<std::string> dataArgs = getDataArgs(args);
 
         for(const std::string& dataArg : dataArgs) {
-            std::filesystem::path path = dataArg;
+            std::filesystem::path path = resolvePath(dataArg);
 
-            if (is_regular_file(path)) {
+            if (std::filesystem::is_regular_file(path)) {
                 if(printCode)
                     os << "```" << path.filename().string() << '\n';
 
-                std::ifstream is (dataArg);
+                std::ifstream is (path.string());
                 os << is.rdbuf() << '\n';
                 is.close();
 
