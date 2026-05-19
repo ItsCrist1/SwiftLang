@@ -5,10 +5,10 @@
 
 #include <sstream>
 
-#include "Clear.h"
+#include "ConsoleClear.h"
 #include "PathPrint.h"
-#include "Echo.h"
-#include "Exit.h"
+#include "ConsolePrint.h"
+#include "ConsoleExit.h"
 #include "PathChange.h"
 #include "UniversalList.h"
 #include "FileRead.h"
@@ -18,9 +18,9 @@ int main(const int argc, const char* argv[]) {
         { "pp", std::make_shared<PathPrint>() },
         { "pc", std::make_shared<PathChange>() },
 
-        { "cp", std::make_shared<Echo>() },
-        { "ce", std::make_shared<Exit>() },
-        { "cc", std::make_shared<Clear>() },
+        { "cp", std::make_shared<ConsolePrint>() },
+        { "ce", std::make_shared<ConsoleExit>() },
+        { "cc", std::make_shared<ConsoleClear>() },
 
         { "fr", std::make_shared<FileRead>() },
 
