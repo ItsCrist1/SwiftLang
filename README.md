@@ -70,7 +70,7 @@ Redirects work with two arguments:
 
 ### Examples
 
-```sh
+```bash
 # Read a file into a variable
 $x < input.in
 
@@ -83,7 +83,7 @@ cp another line >> out.txt
 # Store the result of an expression in a variable
 $area < 3.14 * $r * $r
 
-# Chain a file through a command — read data.txt, feed its tokens as args to cp
+# Chain a file through a command: read data.txt, feed its tokens as args to cp
 cp < data.txt
 
 # Pipe one command's output into another as args
@@ -111,11 +111,11 @@ Each node type behaves differently depending on which side of the redirect it si
 
 | Cmd  | Name             | Description                                               | Flags                                                                        |
 |------|------------------|-----------------------------------------------------------|------------------------------------------------------------------------------|
-| `pp` | Path Print       | Prints the current working directory.                     | —                                                                            |
-| `pc` | Path Change      | Changes the working directory. `~` expands to `$HOME`.    | —                                                                            |
-| `cp` | Console Print    | Prints its arguments separated by spaces, ending in `\n`. | —                                                                            |
-| `ce` | Console Exit     | Exits the shell.                                          | —                                                                            |
-| `cc` | Console Clear    | Clears the terminal (ANSI `\033[2J\033[H`).               | —                                                                            |
+| `pp` | Path Print       | Prints the current working directory.                     | -                                                                            |
+| `pc` | Path Change      | Changes the working directory. `~` expands to `$HOME`.    | -                                                                            |
+| `cp` | Console Print    | Prints its arguments separated by spaces, ending in `\n`. | -                                                                            |
+| `ce` | Console Exit     | Exits the shell.                                          | -                                                                            |
+| `cc` | Console Clear    | Clears the terminal (ANSI `\033[2J\033[H`).               | -                                                                            |
 | `fr` | File Read        | Prints the contents of one or more files.                 | `-c` wrap output in a fenced code block with the filename                    |
 | `ul` | Universal List   | Lists files and directories. Defaults to the current dir. | `-s` show sizes, `-r` recurse, `-n` newline-separated entries                |
 | `ur` | Universal Remove | Removes files. Asks for confirmation on risky paths.      | `-r` also delete directories, `-n` skip files (pair with `-r` for dirs-only) |
