@@ -26,7 +26,7 @@ std::string ICmd::resolvePath(std::string path) {
     if(path.empty() || path[0] == '~')
         path = std::string(getenv("HOME")) + (path.empty() ? "" : path.substr(1));
     
-    return std::filesystem::canonical(path).string();
+    return std::filesystem::weakly_canonical(path).string();
 }
 
 void ICmd::changePath(const std::vector<std::string>& args, Context& context) {

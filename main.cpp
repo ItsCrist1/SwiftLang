@@ -12,6 +12,7 @@
 #include "PathChange.h"
 #include "UniversalList.h"
 #include "FileRead.h"
+#include "UniversalCopy.h"
 #include "UniversalRemove.h"
 
 int main(const int argc, const char* argv[]) {
@@ -26,7 +27,8 @@ int main(const int argc, const char* argv[]) {
         { "fr", std::make_shared<FileRead>() },
 
         { "ul", std::make_shared<UniversalList>() },
-        { "ur", std::make_shared<UniversalRemove>() }
+        { "ur", std::make_shared<UniversalRemove>() },
+        { "uc", std::make_shared<UniversalCopy>() }
     }};
 
     Shell shell (context);
