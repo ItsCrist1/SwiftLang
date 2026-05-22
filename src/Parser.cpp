@@ -19,7 +19,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
         if(is<KeywordToken>(context)) {
             if(as<KeywordToken>(context).cmd == "if") {
                 consume(context);
-                expect<SParenthesesToken>(context);
+                expect<ParenthesesToken>(context);
 
                 processIf(context);
                 continue;
@@ -27,7 +27,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
 
             if(as<KeywordToken>(context).cmd == "while") {
                 consume(context);
-                expect<SParenthesesToken>(context);
+                expect<ParenthesesToken>(context);
 
                 processWhile(context);
                 continue;
@@ -253,8 +253,9 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
 }
 
 IfNode Parser::processIf(Context& context, const bool push) {
-    consume(context);
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
+
+    expect<SParenthesesToken>(context);
     consume(context);
 
     const std::vector<Token> ifBody = getBody(context);
@@ -292,8 +293,9 @@ IfNode Parser::processIf(Context& context, const bool push) {
 }
 
 void Parser::processWhile(Context& context) {
-    consume(context);
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
+
+    expect<SParenthesesToken>(context);
     consume(context);
 
     const std::vector<Token> body = getBody(context);
@@ -315,12 +317,12 @@ std::vector<Token> Parser::getBody(Context& context) {
 
     while(depth != 0) {
         auto opt = peek(context);
-        if (!opt) break;
-        const Token t = *opt;
+        if(!opt) break;
+        const Token& t = *opt;
 
         if(is<SParenthesesToken>(context)) {
             if(const SParentheses spt = as<SParenthesesToken>(context).value;
-                spt == SParentheses::FuncClose) {
+                spt == SParentheses::BodyOpen) {
                 ++depth;
                 body.push_back(t);
             }
