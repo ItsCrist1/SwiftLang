@@ -35,7 +35,7 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
         }
 
         if(is<AlgebraicNode>(node)) {
-            usedOs << calculator.Evaluate(as<AlgebraicNode>(node)) << '\n';
+            std::visit([&usedOs](const auto& v) { usedOs << v << '\n'; }, calculator.Evaluate(as<AlgebraicNode>(node)));
             continue;
         }
 
@@ -89,7 +89,10 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
         }
 
         if(is<AlgebraicNode>(node)) {
-            args.emplace_back(std::to_string(calculator.Evaluate(as<AlgebraicNode>(node))));
+            const AlgebraicEvaluatorOutput& aeo = calculator.Evaluate(as<AlgebraicNode>(node));
+            args.emplace_back(std::holds_alternative<std::string>(aeo)
+                ? std::get<std::string>(aeo)
+                : std::to_string(std::get<double>(aeo)));
             continue;
         }
     }
@@ -130,7 +133,7 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
     else if(is<VarNode>(*Source))
         source << getVar(as<VarNode>(*Source).var);
     else if(is<AlgebraicNode>(*Source))
-        source << calculator.Evaluate(as<AlgebraicNode>(*Source));
+        std::visit([&source](const auto& v) { source << v; }, calculator.Evaluate(as<AlgebraicNode>(*Source)));
     else if(is<IfNode>(*Source))
         processIf(as<IfNode>(*Source), source);
     else if(is<WhileNode>(*Source))
@@ -182,17 +185,25 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
 }
 
 EvaluatorOutput Evaluator::processIf(const IfNode& in, std::ostream& os) {
-    if(!calculator.Evaluate(in.condition))
+    if(!getConditionFromAlgebraicEvaluatorOutput(calculator.Evaluate(in.condition)))
         return Evaluate(in.elseBody, &os);
 
     return Evaluate(in.ifBody, &os);
 }
 
 EvaluatorOutput Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
-    while(calculator.Evaluate(wn.condition))
+    while(getConditionFromAlgebraicEvaluatorOutput(calculator.Evaluate(wn.condition)))
         if(const auto result = Evaluate(wn.body, &os);
             std::holds_alternative<int>(result) && std::get<int>(result) != 0)
             return result;
 
     return 0;
+}
+
+bool Evaluator::getConditionFromAlgebraicEvaluatorOutput(const AlgebraicEvaluatorOutput& aeo) {
+    if(std::holds_alternative<double>(aeo))
+        return std::get<double>(aeo);
+
+    if(std::holds_alternative<std::string>(aeo))
+        return !std::get<std::string>(aeo).empty();
 }

@@ -33,7 +33,7 @@ private:
     template<typename T>
     bool expect(Context&) const;
 
-    std::optional<Node> parseCmd(Context& context, bool push=true);
+    std::optional<Node> parseCmd(Context& context, bool push=true, bool operandMode=false);
     void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
     void parseVar(Context&);
     AlgebraicNode parseAlgebraicExpression(Context&, bool push=true);

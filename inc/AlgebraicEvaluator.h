@@ -9,17 +9,21 @@
 
 struct Evaluator;
 
+using AlgebraicEvaluatorOutput = std::variant<double,std::string>;
+
 struct AlgebraicEvaluator {
     Context& context;
 
     explicit AlgebraicEvaluator(Context&);
 
-    double Evaluate(const AlgebraicNode&);
+    AlgebraicEvaluatorOutput Evaluate(const AlgebraicNode&);
 
     void setEvaluator(Evaluator*);
 
 private:
     const int POW_PRECEDENCE = 2;
+
+    enum class AlgebraicEvaluationCase { AllNum, AllStr, Halfsies };
 
     const std::unordered_map<AlgebraicOperator,int> OPERATOR_PRECEDENCES = {
         { AlgebraicOperator::Add, 0},
@@ -43,13 +47,14 @@ private:
 
     Evaluator* evaluator = nullptr;
 
-    void evaluateToken(std::stack<double>&, const Token&);
+    void evaluateToken(std::stack<AlgebraicEvaluatorOutput>&, const Token&);
 
     AlgebraicNode rearrange(const AlgebraicNode&);
     void rearrangeToken(bool&, bool&, AlgebraicNode&, std::stack<Token>&, const Token&, const std::function<void()>&);
     void rearrangeNode(bool&, AlgebraicNode&, const Node&, const std::function<void()>&);
 
     int getPrecedence(const Token&);
+    std::string repeatStr(const std::string&, size_t);
 };
 
 #endif

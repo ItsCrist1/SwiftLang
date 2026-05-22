@@ -33,6 +33,8 @@ private:
 
     [[nodiscard]] const std::string& getVar(const std::string&) const;
     void setVar(const std::string&, const std::string&);
+
+    bool getConditionFromAlgebraicEvaluatorOutput(const AlgebraicEvaluatorOutput&);
 };
 
 #endif

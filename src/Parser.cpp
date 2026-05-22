@@ -33,6 +33,13 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 continue;
             }
 
+            size_t i=1;
+            while(is<KeywordToken>(context,i++));
+            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,--i)) {
+                parseAlgebraicExpression(context);
+                continue;
+            }
+
             if(parseCmd(context))
                 continue;
         }
@@ -99,7 +106,7 @@ bool Parser::expect(Context& context) const {
         return false;
     }
 
-    if (!is<T>(context)) {
+    if(!is<T>(context)) {
         const Token token = *peek(context);
         context.error = ParserError("Unexpected token type", token.x, token.y);
         return false;
@@ -108,7 +115,7 @@ bool Parser::expect(Context& context) const {
     return true;
 }
 
-std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
+std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bool operandMode) {
     if(!is<KeywordToken>(context))
         return std::nullopt;
 
@@ -120,8 +127,11 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
     while(is<KeywordToken,StringToken,VariableToken,NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
         const Token targ = *peek(context);
 
+        if(operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context))
+            break;
+
         if(is<KeywordToken>(context)) {
-            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
+            if(!operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
                 cn.args.emplace_back(parseAlgebraicExpression(context,false));
             else {
                 cn.args.emplace_back(ArgNode(as<KeywordToken>(context).cmd), targ.x, targ.y);
@@ -139,7 +149,7 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push) {
             consume(context);
         }
         else if(is<VariableToken>(context)) {
-            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
+            if(!operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
                 cn.args.emplace_back(parseAlgebraicExpression(context, false));
             else {
                 cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
@@ -233,7 +243,7 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
 
     while(is<KeywordToken,NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken>(context)) {
         if(is<KeywordToken>(context)) {
-            an.tns.emplace_back(*parseCmd(context, false));
+            an.tns.emplace_back(*parseCmd(context, false, true));
             continue;
         }
 

@@ -19,7 +19,7 @@ struct FileRead : ICmd {
         for(const std::string& dataArg : dataArgs) {
             std::filesystem::path path = resolvePath(dataArg);
 
-            if (std::filesystem::is_regular_file(path)) {
+            if(std::filesystem::is_regular_file(path)) {
                 if(printCode)
                     os << "```" << path.filename().string() << '\n';
 

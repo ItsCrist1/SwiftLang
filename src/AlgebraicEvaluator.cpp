@@ -5,10 +5,10 @@
 
 AlgebraicEvaluator::AlgebraicEvaluator(Context& context) : context(context) {}
 
-double AlgebraicEvaluator::Evaluate(const AlgebraicNode &an) {
+AlgebraicEvaluatorOutput AlgebraicEvaluator::Evaluate(const AlgebraicNode &an) {
     const AlgebraicNode tan = rearrange(an);
 
-    std::stack<double> stack;
+    std::stack<AlgebraicEvaluatorOutput> stack;
 
     for(const std::variant<Token,Node>& tn : tan.tns) {
         if(std::holds_alternative<Token>(tn))
@@ -22,46 +22,157 @@ void AlgebraicEvaluator::setEvaluator(Evaluator* evaluator) {
     this->evaluator = evaluator;
 }
 
-void AlgebraicEvaluator::evaluateToken(std::stack<double>& stack, const Token& t) {
+void AlgebraicEvaluator::evaluateToken(std::stack<AlgebraicEvaluatorOutput>& stack, const Token& t) {
     if(std::holds_alternative<NumericToken>(t.value)) {
-        stack.push(std::get<NumericToken>(t.value).value);
+        stack.emplace(std::get<NumericToken>(t.value).value);
         return;
     }
 
-    if(std::holds_alternative<AlgebraicOperatorToken>(t.value)) {
-        const double num2 = stack.top();
-        stack.pop();
-        const double num1 = stack.top();
-        stack.pop();
+    if(std::holds_alternative<KeywordToken>(t.value)) {
+        stack.emplace(std::get<KeywordToken>(t.value).cmd);
+        return;
+    }
 
+    AlgebraicEvaluatorOutput t2 = stack.top();
+    stack.pop();
+    AlgebraicEvaluatorOutput t1 = stack.top();
+    stack.pop();
+
+    AlgebraicEvaluationCase aec;
+    bool halfsiesOrder;
+
+    std::string s1, s2;
+    double n1, n2;
+
+    if(std::holds_alternative<double>(t1) && std::holds_alternative<double>(t2)) {
+        aec = AlgebraicEvaluationCase::AllNum;
+        n1 = std::get<double>(t1);
+        n2 = std::get<double>(t2);
+    }
+    else if(std::holds_alternative<std::string>(t1) && std::holds_alternative<std::string>(t2)) {
+        aec = AlgebraicEvaluationCase::AllStr;
+        s1 = std::get<std::string>(t1);
+        s2 = std::get<std::string>(t2);
+    }
+    else {
+        aec = AlgebraicEvaluationCase::Halfsies;
+
+        halfsiesOrder = std::holds_alternative<std::string>(t1);
+
+        if(halfsiesOrder) {
+            s1 = std::get<std::string>(t1);
+            n2 = std::get<double>(t2);
+        } else {
+            n1 = std::get<double>(t1);
+            s2 = std::get<std::string>(t2);
+        }
+    }
+
+    if(std::holds_alternative<AlgebraicOperatorToken>(t.value)) {
         switch(std::get<AlgebraicOperatorToken>(t.value).op) {
-            case AlgebraicOperator::Add: stack.push(num1 + num2); break;
-            case AlgebraicOperator::Sub: stack.push(num1 - num2); break;
-            case AlgebraicOperator::Mul: stack.push(num1 * num2); break;
-            case AlgebraicOperator::Div: stack.push(num1 / num2); break;
-            case AlgebraicOperator::Mod: stack.push(std::fmod(num1, num2)); break;
-            case AlgebraicOperator::Pow: stack.push(std::pow(num1, num2)); break;
+            case AlgebraicOperator::Add:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(n1 + n2);
+            else if(aec == AlgebraicEvaluationCase::AllStr)
+                stack.emplace(s1 + s2);
+            else if(!halfsiesOrder)
+                    try {
+                        stack.emplace(n1 + std::stod(s2));
+                    } catch(const std::exception&) {
+                        stack.emplace(std::to_string(n1) + s2);
+                    }
+            else
+                try {
+                    stack.emplace(std::stod(s1) + n2);
+                } catch(const std::exception&) {
+                    stack.emplace(s1 + std::to_string(n2));
+                }
+            break;
+
+            case AlgebraicOperator::Sub:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(n1 - n2);
+            else if(aec == AlgebraicEvaluationCase::AllStr)
+                stack.emplace(s1.ends_with(s2) ? s1.substr(0, s1.size() - s2.size()) : s1);
+            else if(!halfsiesOrder)
+                try {
+                    stack.emplace(n1 - std::stod(s2));
+                } catch(const std::exception&) {
+                    const std::string& str1 = std::to_string(n1);
+                    stack.emplace(str1.ends_with(s2) ? str1.substr(0, s1.size() - s2.size()) : str1);
+                }
+            else
+                try {
+                    stack.emplace(std::stod(s1) - n2);
+                } catch(const std::exception&) {
+                    const std::string& str1 = std::to_string(n2);
+                    stack.emplace(s1.ends_with(str1) ? s1.substr(0, s1.size() - str1.size()) : s1);
+                }
+            break;
+
+            case AlgebraicOperator::Mul:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(n1 * n2);
+            else if(aec == AlgebraicEvaluationCase::AllStr) {
+                try {
+                    stack.emplace(repeatStr(s1, std::stoi(s2)));
+                } catch(const std::exception&) {
+                    try {
+                        stack.emplace(repeatStr(s2, std::stoi(s1)));
+                    } catch(const std::exception&) {
+                        stack.emplace(s1);
+                    }
+                }
+            } else if(!halfsiesOrder)
+                stack.emplace(repeatStr(s1, n2));
+            else
+                stack.emplace(repeatStr(s2, n1));
+
+            break;
+
+            case AlgebraicOperator::Div:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(n1 / n2);
+            else if(aec == AlgebraicEvaluationCase::AllStr || halfsiesOrder)
+                stack.emplace(s1);
+            else
+                stack.emplace(s2);
+            break;
+
+            case AlgebraicOperator::Mod:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(std::fmod(n1,n2));
+            else if(aec == AlgebraicEvaluationCase::AllStr || halfsiesOrder)
+                stack.emplace(s1);
+            else
+                stack.emplace(s2);
+            break;
+
+            case AlgebraicOperator::Pow:
+            if(aec == AlgebraicEvaluationCase::AllNum)
+                stack.emplace(std::pow(n1, n2));
+            else if(aec == AlgebraicEvaluationCase::AllStr || halfsiesOrder)
+                stack.emplace(s1);
+            else
+                stack.emplace(s2);
+            break;
+
             default: break;
         }
     }
 
     if(std::holds_alternative<LogicalOperatorToken>(t.value)) {
-        const double num2 = stack.top();
-        stack.pop();
-        const double num1 = stack.top();
-        stack.pop();
-
-        switch(std::get<LogicalOperatorToken>(t.value).op) {
-            case LogicalOperator::And: stack.push(num1 && num2); break;
-            case LogicalOperator::Or: stack.push(num1 || num2); break;
-            case LogicalOperator::Equals: stack.push(num1 == num2); break;
-            case LogicalOperator::NotEquals: stack.push(num1 != num2); break;
-            case LogicalOperator::Lesser: stack.push(num1 < num2); break;
-            case LogicalOperator::LesserEquals: stack.push(num1 <= num2); break;
-            case LogicalOperator::Greater: stack.push(num1 > num2); break;
-            case LogicalOperator::GreaterEquals: stack.push(num1 >= num2); break;
-            default: break;
-        }
+        // switch(std::get<LogicalOperatorToken>(t.value).op) {
+        //     case LogicalOperator::And: stack.push(num1 && num2); break;
+        //     case LogicalOperator::Or: stack.push(num1 || num2); break;
+        //     case LogicalOperator::Equals: stack.push(num1 == num2); break;
+        //     case LogicalOperator::NotEquals: stack.push(num1 != num2); break;
+        //     case LogicalOperator::Lesser: stack.push(num1 < num2); break;
+        //     case LogicalOperator::LesserEquals: stack.push(num1 <= num2); break;
+        //     case LogicalOperator::Greater: stack.push(num1 > num2); break;
+        //     case LogicalOperator::GreaterEquals: stack.push(num1 >= num2); break;
+        //     default: break;
+        // }
     }
 }
 
@@ -115,7 +226,15 @@ void AlgebraicEvaluator::rearrangeToken(bool& wasOp, bool& toAddSub, AlgebraicNo
 
         stack.emplace(t);
     } else if(std::holds_alternative<VariableToken>(t.value)) {
-        output.tns.emplace_back(Token{NumericToken(std::stod(context.Variables.at(std::get<VariableToken>(t.value).name)))});
+        const std::string& var = context.Variables.at(std::get<VariableToken>(t.value).name);
+
+        try {
+            output.tns.emplace_back(Token{NumericToken(std::stod(var))});
+        }
+        catch(const std::exception&) {
+            output.tns.emplace_back(Token{ KeywordToken(var)});
+        }
+
         flushNeg();
     }
     else if(std::holds_alternative<ParenthesesToken>(t.value)) {
@@ -131,6 +250,8 @@ void AlgebraicEvaluator::rearrangeToken(bool& wasOp, bool& toAddSub, AlgebraicNo
             flushNeg();
         }
     }
+    else if(std::holds_alternative<KeywordToken>(t.value))
+        stack.push(t);
 
     wasOp = std::holds_alternative<AlgebraicOperatorToken>(t.value);
 }
@@ -142,7 +263,12 @@ void AlgebraicEvaluator::rearrangeNode(bool& wasOp, AlgebraicNode& output, const
 
         evaluator->RunCmd(std::get<CmdNode>(n.value), oss, rc);
 
-        output.tns.emplace_back(Token{NumericToken(std::stod(oss.str()))});
+        try {
+            output.tns.emplace_back(Token{NumericToken(std::stod(oss.str()))});
+        }
+        catch(const std::exception&) {
+            output.tns.emplace_back(Token{KeywordToken(oss.str())});
+        }
 
         flushNeg();
         wasOp = false;
@@ -157,4 +283,13 @@ int AlgebraicEvaluator::getPrecedence(const Token& t) {
         return LOGICAL_PRECEDENCES.at(std::get<LogicalOperatorToken>(t.value).op);
 
     return 0;
+}
+
+std::string AlgebraicEvaluator::repeatStr(const std::string& str, size_t c) {
+    std::ostringstream oss;
+
+    for(size_t i=0; i < c; ++i)
+        oss << str;
+
+    return oss.str();
 }
