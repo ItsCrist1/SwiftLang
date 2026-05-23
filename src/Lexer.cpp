@@ -96,7 +96,8 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(!context.pardonLp && LogicalOperatorToken::ALL_LOGICAL_OPS.contains(c)) {
+    if(!context.pardonLp && LogicalOperatorToken::ALL_LOGICAL_OPS.contains(c)
+    && !((c == '<' || c == '>') && cn == '-')) {
         context.currentState = Context::State::Logical;
         context.target = c;
         resetStart(context);

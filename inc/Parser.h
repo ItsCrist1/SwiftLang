@@ -37,8 +37,8 @@ private:
     void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
     std::variant<VarNode,ArrNode> parseVar(Context&, bool push=true);
     AlgebraicNode parseAlgebraicExpression(Context&, bool push=true);
-    IfNode processIf(Context&, bool push=true);
-    void processWhile(Context&);
+    IfNode parseIf(Context&, bool push=true);
+    void parseWhile(Context&);
 
     std::vector<Token> getBody(Context&);
 };

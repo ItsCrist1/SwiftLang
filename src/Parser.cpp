@@ -21,7 +21,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 consume(context);
                 expect<ParenthesesToken>(context);
 
-                processIf(context);
+                parseIf(context);
                 continue;
             }
 
@@ -29,7 +29,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 consume(context);
                 expect<ParenthesesToken>(context);
 
-                processWhile(context);
+                parseWhile(context);
                 continue;
             }
 
@@ -256,6 +256,18 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
         context.rootNode.nodes.emplace_back(std::move(rn), x, y);
         return;
     }
+
+    if(is<StringToken>(context)) {
+        auto rn = RedirectNode {
+            node,
+            std::make_shared<Node>(StringNode(as<StringToken>(context).value)),
+            sign
+        };
+
+        context.rootNode.nodes.emplace_back(std::move(rn), x, y);
+        consume(context);
+        return;
+    }
 }
 
 std::variant<VarNode,ArrNode> Parser::parseVar(Context& context, const bool push) {
@@ -295,14 +307,18 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
         }
 
         if(is<StringToken>(context)) {
-            an.tns.emplace_back(Token{ as<StringToken>(context), peek(context)->x, peek(context)->y});
+            an.tns.emplace_back(Token{as<StringToken>(context), peek(context)->x, peek(context)->y});
             consume(context);
             continue;
         }
 
-
-        an.tns.emplace_back(*peek(context));
-        consume(context);
+        if(is<VariableToken>(context)) {
+            std::visit([&] (const auto& t) { an.tns.emplace_back(Node(t)); }, parseVar(context, false));
+            consume(context);
+        } else {
+            an.tns.emplace_back(*peek(context));
+            consume(context);
+        }
     }
 
     if(push && is<SignToken>(context)) {
@@ -316,7 +332,7 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
     return an;
 }
 
-IfNode Parser::processIf(Context& context, const bool push) {
+IfNode Parser::parseIf(Context& context, const bool push) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     expect<FuncParenthesesToken>(context);
@@ -332,7 +348,7 @@ IfNode Parser::processIf(Context& context, const bool push) {
         consume(context);
         if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "if") {
             consume(context);
-            elseBody.nodes.emplace_back(processIf(context,false));
+            elseBody.nodes.emplace_back(parseIf(context,false));
         }
         else
             elseBody = std::get<RootNode>(Parse(getBody(context)));
@@ -356,7 +372,7 @@ IfNode Parser::processIf(Context& context, const bool push) {
     return in;
 }
 
-void Parser::processWhile(Context& context) {
+void Parser::parseWhile(Context& context) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     expect<FuncParenthesesToken>(context);

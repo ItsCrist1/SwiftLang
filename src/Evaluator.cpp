@@ -191,6 +191,12 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         processRedirect(as<RedirectNode>(*Target), os, targs, returnCode);
     else if(is<VarNode>(*Target))
         setVar(as<VarNode>(*Target).var, source.str());
+    else if(is<ArrNode>(*Target)) {
+        const ArrNode an = as<ArrNode>(*Target);
+        const size_t idx = getArrayIdx(an.idx);
+
+        context.Arrays[an.arr][idx] = source.str();
+    }
 
     if(isFile) {
         const bool append = redirect.sign == Sign::AppendLeft || redirect.sign == Sign::AppendRight;
