@@ -70,6 +70,15 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
                 continue;
             }
 
+            if(is<SignToken>(context,1)) {
+                const auto cn = StringNode(as<StringToken>(context).value);
+                const Token ct = *peek(context);
+                consume(context);
+
+                parseRedirect(context, std::make_shared<Node>(cn), true, ct.x, ct.y);
+                continue;
+            }
+
             context.rootNode.nodes.emplace_back(StringNode(as<StringToken>(context).value),  peek(context)->x, peek(context)->y);
             consume(context);
             continue;

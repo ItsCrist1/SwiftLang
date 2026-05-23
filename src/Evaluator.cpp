@@ -133,7 +133,10 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
             source << is.rdbuf();
             is.close();
         }
-    } else if(is<RedirectNode>(*Source))
+    }
+    else if(is<StringNode>(*Source))
+        source << as<StringNode>(*Source).str;
+    else if(is<RedirectNode>(*Source))
         processRedirect(as<RedirectNode>(*Source), source, args, returnCode);
     else if(is<VarNode>(*Source))
         source << getVar(as<VarNode>(*Source).var);
