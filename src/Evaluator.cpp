@@ -19,6 +19,11 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
             continue;
         }
 
+        if(is<StringNode>(node)) {
+            usedOs << as<StringNode>(node).str;
+            continue;
+        }
+
         if(is<RedirectNode>(node)) {
             int rc = 0;
             processRedirect(as<RedirectNode>(node), usedOs, {}, rc);

@@ -34,7 +34,7 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
             }
 
             size_t i=1;
-            while(is<KeywordToken>(context,i++));
+            while(is<KeywordToken,StringToken,VariableToken,NumericToken>(context,i++));
             if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,--i)) {
                 parseAlgebraicExpression(context);
                 continue;
@@ -61,6 +61,17 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
 
         if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
             parseAlgebraicExpression(context);
+            continue;
+        }
+
+        if(is<StringToken>(context)) {
+            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1)) {
+                parseAlgebraicExpression(context);
+                continue;
+            }
+
+            context.rootNode.nodes.emplace_back(StringNode(as<StringToken>(context).value),  peek(context)->x, peek(context)->y);
+            consume(context);
             continue;
         }
 
@@ -241,11 +252,18 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
     AlgebraicNode an;
     const Token first = *peek(context);
 
-    while(is<KeywordToken,NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken>(context)) {
+    while(is<KeywordToken,NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken,StringToken>(context)) {
         if(is<KeywordToken>(context)) {
             an.tns.emplace_back(*parseCmd(context, false, true));
             continue;
         }
+
+        if(is<StringToken>(context)) {
+            an.tns.emplace_back(Token{ as<StringToken>(context), peek(context)->x, peek(context)->y});
+            consume(context);
+            continue;
+        }
+
 
         an.tns.emplace_back(*peek(context));
         consume(context);

@@ -19,6 +19,10 @@ struct CmdNode {
     std::vector<Node> args;
 };
 
+struct StringNode {
+    std::string str;
+};
+
 struct VarNode {
     std::string var;
 };
@@ -49,6 +53,7 @@ struct WhileNode {
 
 using NodeValue = std::variant <
     CmdNode,
+    StringNode,
     VarNode,
     ArgNode,
     RedirectNode,

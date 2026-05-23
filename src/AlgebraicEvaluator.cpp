@@ -371,6 +371,8 @@ void AlgebraicEvaluator::rearrangeToken(bool& wasOp, bool& toAddSub, AlgebraicNo
     }
     else if(std::holds_alternative<KeywordToken>(t.value))
         stack.push(t);
+    else if(std::holds_alternative<StringToken>(t.value))
+        stack.push(Token{KeywordToken(std::get<StringToken>(t.value).value)});
 
     wasOp = std::holds_alternative<AlgebraicOperatorToken>(t.value);
 }
