@@ -21,13 +21,16 @@ private:
         enum class State { Search, Keyword, Number, String, Logical, Sign, Comment };
         State currentState = State::Search;
 
+        enum class KeywordState { Normal, Variable, Function};
+        KeywordState currentKState = KeywordState::Normal;
+
         std::optional<LexerError> error;
         size_t x = 1u, y = 1u, startX, startY;
 
         std::vector<Token> tokens;
         std::string target;
         size_t idx = 0, bidx = 0;
-        bool wasEscaped = false, varMode = false, pardonLp = false, pardonPath = false;
+        bool wasEscaped = false, pardonLp = false, pardonPath = false;
     };
 
     static constexpr char FUNNEL_END_CHAR = '\0';

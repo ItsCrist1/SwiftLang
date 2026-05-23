@@ -172,7 +172,7 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bo
             if(!operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
                 cn.args.emplace_back(parseAlgebraicExpression(context, false));
             else {
-                cn.args.emplace_back(VarNode(as<VariableToken>(context).name), targ.x, targ.y);
+                std::visit([&](const auto& t){ cn.args.emplace_back(t); }, parseVar(context, false));
                 consume(context);
             }
         }
@@ -195,7 +195,8 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
     const Sign sign = as<SignToken>(context).sign;
     consume(context);
 
-    if(std::holds_alternative<VarNode>(node->value))
+    if(std::holds_alternative<VarNode>(node->value)
+    || std::holds_alternative<ArrNode>(node->value))
         context.rootNode.nodes.pop_back();
 
     if(auto scn = parseCmd(context, false)) {
@@ -224,12 +225,18 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
 
             doConsume = false;
         }
-        else
+        else {
+            std::shared_ptr<Node> tn;
+            std::visit([&tn](const auto& t) {
+                tn = std::make_shared<Node>(t);
+            }, parseVar(context, false));
+
             rn = RedirectNode {
                 node,
-                std::make_shared<Node>(VarNode(as<VariableToken>(context).name)),
+                tn,
                 sign
             };
+        }
 
         context.rootNode.nodes.emplace_back(std::move(rn), x, y);
 
@@ -251,10 +258,30 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
     }
 }
 
-void Parser::parseVar(Context& context) {
+std::variant<VarNode,ArrNode> Parser::parseVar(Context& context, const bool push) {
     const Token token = *peek(context);
-    context.rootNode.nodes.emplace_back(VarNode(as<VariableToken>(context).name), token.x, token.y);
+    if(is<MiscParenthesesToken>(context,1)) {
+        const std::string arrNode = as<VariableToken>(context).name;
+
+        consume(context);
+        consume(context);
+        const AlgebraicNode an = parseAlgebraicExpression(context, false);
+
+        auto tan = ArrNode(arrNode, an);
+
+        if(push)
+            context.rootNode.nodes.emplace_back(tan);
+
+        return tan;
+    }
+
+    auto tvn = VarNode(as<VariableToken>(context).name);
+
+    if(push)
+        context.rootNode.nodes.emplace_back(tvn, token.x, token.y);
+
     consume(context);
+    return tvn;
 }
 
 AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push) {
@@ -292,7 +319,7 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
 IfNode Parser::processIf(Context& context, const bool push) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
-    expect<SParenthesesToken>(context);
+    expect<FuncParenthesesToken>(context);
     consume(context);
 
     const std::vector<Token> ifBody = getBody(context);
@@ -332,7 +359,7 @@ IfNode Parser::processIf(Context& context, const bool push) {
 void Parser::processWhile(Context& context) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
-    expect<SParenthesesToken>(context);
+    expect<FuncParenthesesToken>(context);
     consume(context);
 
     const std::vector<Token> body = getBody(context);
@@ -357,13 +384,13 @@ std::vector<Token> Parser::getBody(Context& context) {
         if(!opt) break;
         const Token& t = *opt;
 
-        if(is<SParenthesesToken>(context)) {
-            if(const SParentheses spt = as<SParenthesesToken>(context).value;
-                spt == SParentheses::BodyOpen) {
+        if(is<FuncParenthesesToken>(context)) {
+            if(const FuncParentheses spt = as<FuncParenthesesToken>(context).value;
+                spt == FuncParentheses::BodyOpen) {
                 ++depth;
                 body.push_back(t);
             }
-            else if(spt == SParentheses::BodyClose) {
+            else if(spt == FuncParentheses::BodyClose) {
                 if(--depth != 0) body.push_back(t);
             } else body.push_back(t);
         } else

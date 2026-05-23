@@ -3,6 +3,7 @@
 
 #include "ICmd.h"
 #include <unordered_map>
+#include <vector>
 #include <string>
 #include <filesystem>
 #include <memory>
@@ -13,6 +14,7 @@ struct ICmd;
 struct Context {
     std::unordered_map<std::string,std::shared_ptr<ICmd>> Commands;
     std::unordered_map<std::string,std::string> Variables;
+    std::unordered_map<std::string,std::vector<std::string>> Arrays;
     std::istream& InputStream;
     std::ostream& OutputStream;
     std::string CurrentPath;
@@ -22,11 +24,15 @@ struct Context {
         std::unordered_map<std::string,std::string> Variables = {
         {"PI", "3.14159"}
         },
+        std::unordered_map<std::string,std::vector<std::string>> Arrays = {
+            { "test", { "45" } }
+        },
         std::istream& InputStream = std::cin,
         std::ostream& OutputStream = std::cout,
         std::string CurrentPath = std::filesystem::current_path().string()
     ) : Commands(std::move(Commands)),
         Variables(std::move(Variables)),
+        Arrays(std::move(Arrays)),
         InputStream(InputStream),
         OutputStream(OutputStream),
         CurrentPath(CurrentPath.empty()

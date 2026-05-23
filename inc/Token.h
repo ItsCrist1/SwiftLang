@@ -20,6 +20,13 @@ struct VariableToken {
     explicit VariableToken(std::string_view);
 };
 
+struct FuncToken {
+    static constexpr char SIGN = '@';
+
+    std::string name;
+    explicit FuncToken(std::string_view);
+};
+
 struct NumericToken {
     static constexpr char DECIMAL_CHAR = '.';
     static constexpr std::string_view NUMBER_EXCEPTIONS = "_";
@@ -48,16 +55,28 @@ struct ParenthesesToken {
     explicit ParenthesesToken(Parentheses);
 };
 
-enum class SParentheses { FuncOpen, FuncClose, BodyOpen, BodyClose };
+enum class MiscParentheses { BodyOpen, BodyClose };
 
-struct SParenthesesToken {
-    inline static const std::unordered_map<char, SParentheses> SPARENTHESES = {
-        { '{', SParentheses::BodyOpen },
-        { '}', SParentheses::BodyClose }
+struct MiscParenthesesToken {
+    inline static const std::unordered_map<char, MiscParentheses> PARENTHESES = {
+        { '[', MiscParentheses::BodyOpen },
+        { ']', MiscParentheses::BodyClose }
     };
 
-    SParentheses value;
-    explicit SParenthesesToken(SParentheses);
+    MiscParentheses value;
+    explicit MiscParenthesesToken(MiscParentheses);
+};
+
+enum class FuncParentheses { BodyOpen, BodyClose };
+
+struct FuncParenthesesToken {
+    inline static const std::unordered_map<char, FuncParentheses> PARENTHESES = {
+        { '{', FuncParentheses::BodyOpen },
+        { '}', FuncParentheses::BodyClose }
+    };
+
+    FuncParentheses value;
+    explicit FuncParenthesesToken(FuncParentheses);
 };
 
 enum class AlgebraicOperator { Add, Sub, Mul, Div, Mod, Pow, None };
@@ -122,10 +141,12 @@ struct NewlineToken {
 using TokenValue = std::variant<
     KeywordToken,
     VariableToken,
+    FuncToken,
     NumericToken,
     StringToken,
     ParenthesesToken,
-    SParenthesesToken,
+    MiscParenthesesToken,
+    FuncParenthesesToken,
     AlgebraicOperatorToken,
     LogicalOperatorToken,
     SignToken,

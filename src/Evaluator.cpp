@@ -39,6 +39,14 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
             continue;
         }
 
+        if(is<ArrNode>(node)) {
+            const ArrNode an = as<ArrNode>(node);
+            const size_t idx = getArrayIdx(an.idx);
+
+            if(context.Arrays[an.arr].size() > idx)
+                usedOs << context.Arrays[an.arr][idx];
+        }
+
         if(is<AlgebraicNode>(node)) {
             std::visit([&usedOs](const auto& v) { usedOs << v << '\n'; }, calculator.Evaluate(as<AlgebraicNode>(node)));
             continue;
@@ -93,6 +101,14 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
             continue;
         }
 
+        if(is<ArrNode>(node)) {
+            const ArrNode an = as<ArrNode>(node);
+            const size_t idx = getArrayIdx(an.idx);
+
+            if(context.Arrays[an.arr].size() > idx)
+                args.emplace_back(context.Arrays[an.arr][idx]);
+        }
+
         if(is<AlgebraicNode>(node)) {
             const AlgebraicEvaluatorOutput& aeo = calculator.Evaluate(as<AlgebraicNode>(node));
             args.emplace_back(std::holds_alternative<std::string>(aeo)
@@ -140,6 +156,13 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         processRedirect(as<RedirectNode>(*Source), source, args, returnCode);
     else if(is<VarNode>(*Source))
         source << getVar(as<VarNode>(*Source).var);
+    else if(is<ArrNode>(*Source)) {
+        const ArrNode an = as<ArrNode>(*Source);
+        const size_t idx = getArrayIdx(an.idx);
+
+        if(context.Arrays[an.arr].size() > idx)
+            source << context.Arrays[an.arr][idx];
+    }
     else if(is<AlgebraicNode>(*Source))
         std::visit([&source](const auto& v) { source << v; }, calculator.Evaluate(as<AlgebraicNode>(*Source)));
     else if(is<IfNode>(*Source))
@@ -190,6 +213,22 @@ void Evaluator::setVar(const std::string& var, const std::string& val) {
         it->second = val;
     else
         context.Variables.emplace(var, val);
+}
+
+size_t Evaluator::getArrayIdx(const AlgebraicNode& an) {
+    const AlgebraicEvaluatorOutput aeo = calculator.Evaluate(an);
+    size_t idx;
+
+    if(std::holds_alternative<double>(aeo))
+        idx = std::get<double>(aeo);
+    else
+        try {
+            idx = std::stoi(std::get<std::string>(aeo));
+        } catch(const std::exception&) {
+            idx = 0u;
+        }
+
+    return idx;
 }
 
 EvaluatorOutput Evaluator::processIf(const IfNode& in, std::ostream& os) {

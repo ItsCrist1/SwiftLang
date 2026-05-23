@@ -40,6 +40,11 @@ struct AlgebraicNode {
     std::vector<std::variant<Token,Node>> tns;
 };
 
+struct ArrNode {
+    std::string arr;
+    AlgebraicNode idx;
+};
+
 struct IfNode {
     AlgebraicNode condition;
     RootNode ifBody;
@@ -55,6 +60,7 @@ using NodeValue = std::variant <
     CmdNode,
     StringNode,
     VarNode,
+    ArrNode,
     ArgNode,
     RedirectNode,
     AlgebraicNode,

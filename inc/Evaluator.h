@@ -33,6 +33,7 @@ private:
 
     [[nodiscard]] const std::string& getVar(const std::string&) const;
     void setVar(const std::string&, const std::string&);
+    [[nodiscard]] size_t getArrayIdx(const AlgebraicNode&);
 
     bool getConditionFromAlgebraicEvaluatorOutput(const AlgebraicEvaluatorOutput&);
 };

@@ -35,7 +35,7 @@ private:
 
     std::optional<Node> parseCmd(Context& context, bool push=true, bool operandMode=false);
     void parseRedirect(Context&, const std::shared_ptr<Node>&, bool, size_t, size_t);
-    void parseVar(Context&);
+    std::variant<VarNode,ArrNode> parseVar(Context&, bool push=true);
     AlgebraicNode parseAlgebraicExpression(Context&, bool push=true);
     IfNode processIf(Context&, bool push=true);
     void processWhile(Context&);

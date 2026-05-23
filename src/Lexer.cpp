@@ -53,10 +53,18 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
     }
 
     if(c == VariableToken::SIGN) {
-        if(context.varMode)
+        if(context.currentKState == Context::KeywordState::Variable)
             context.error = LexerError("Variable identifier found in variable mode", context.x, context.y);
 
-        context.varMode = true;
+        context.currentKState = Context::KeywordState::Variable;
+        return;
+    }
+
+    if(c == FuncToken::SIGN) {
+        if(context.currentKState == Context::KeywordState::Function)
+            context.error = LexerError("Function identifier found in function mode", context.x, context.y);
+
+        context.currentKState = Context::KeywordState::Function;
         return;
     }
 
@@ -78,9 +86,13 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.tokens.emplace_back(ParenthesesToken(it->second), context.x, context.y);
         return;
     }
+    if(const auto it=MiscParenthesesToken::PARENTHESES.find(c); it != MiscParenthesesToken::PARENTHESES.end()) {
+        context.tokens.emplace_back(MiscParenthesesToken(it->second), context.x, context.y);
+        return;
+    }
 
-    if(const auto it=SParenthesesToken::SPARENTHESES.find(c); it != SParenthesesToken::SPARENTHESES.end()) {
-        context.tokens.emplace_back(SParenthesesToken(it->second), context.x, context.y);
+    if(const auto it=FuncParenthesesToken::PARENTHESES.find(c); it != FuncParenthesesToken::PARENTHESES.end()) {
+        context.tokens.emplace_back(FuncParenthesesToken(it->second), context.x, context.y);
         return;
     }
 
@@ -150,8 +162,10 @@ void Lexer::keywordPattern(const char c, Context& context) {
         return;
     }
 
-    if(context.varMode)
+    if(context.currentKState == Context::KeywordState::Variable)
         context.tokens.emplace_back(VariableToken(context.target), context.startX, context.startY);
+    else if(context.currentKState == Context::KeywordState::Function)
+        context.tokens.emplace_back(FuncToken(context.target), context.startX, context.startY);
     else
         context.tokens.emplace_back(KeywordToken(context.target), context.startX, context.startY);
 
@@ -247,7 +261,7 @@ void Lexer::resetState(Context& context) {
     --context.idx;
     --context.x;
 
-    context.varMode = false;
+    context.currentKState = Context::KeywordState::Normal;
 }
 
 void Lexer::resetStart(Context& context) {
