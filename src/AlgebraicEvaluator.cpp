@@ -139,9 +139,9 @@ void AlgebraicEvaluator::evaluateToken(std::stack<AlgebraicEvaluatorOutput>& sta
                     stack.emplace(s1);
                 } catch(const std::exception&) {
                     try {
-                        stack.emplace(std::stoi(s1) / s2.size());
+                        stack.emplace(static_cast<double>(std::stoi(s1) / s2.size()));
                     } catch(const std::exception&) {
-                        stack.emplace(s1.size() / s2.size());
+                        stack.emplace(static_cast<double>(s1.size() / s2.size()));
                     }
                 }
             else if(halfsiesOrder) {
@@ -157,25 +157,25 @@ void AlgebraicEvaluator::evaluateToken(std::stack<AlgebraicEvaluatorOutput>& sta
             else if(aec == AlgebraicEvaluationCase::AllStr)
                 try {
                     if(const size_t sz = std::stoi(s2); sz < s1.size())
-                        stack.emplace(s1[sz]);
+                        stack.emplace(static_cast<double>(s1[sz]));
                     else
                         stack.emplace(s1);
                 } catch(const std::exception&) {
                     try {
                         if(const size_t sz = std::stoi(s1); s2.size() < sz)
-                            stack.emplace(std::to_string(sz)[s2.size()]);
+                            stack.emplace(static_cast<double>(std::to_string(sz)[s2.size()]));
                         else
                             stack.emplace(s1);
                     } catch(const std::exception&) {
                         if(s2.size() < s1.size())
-                            stack.emplace(s1[s2.size()]);
+                            stack.emplace(static_cast<double>(s1[s2.size()]));
                         else
                             stack.emplace(s1);
                     }
                 }
             else if(halfsiesOrder) {
                 if(n2 < s1.size())
-                    stack.emplace(s1[n2]);
+                    stack.emplace(static_cast<double>(s1[n2]));
                 else
                     stack.emplace(s1);
             } else
@@ -204,90 +204,90 @@ void AlgebraicEvaluator::evaluateToken(std::stack<AlgebraicEvaluatorOutput>& sta
         switch(std::get<LogicalOperatorToken>(t.value).op) {
             case LogicalOperator::And:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 && n2);
+                stack.emplace(static_cast<double>(n1 && n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(!s1.empty() && !s2.empty());
+                stack.emplace(static_cast<double>(!s1.empty() && !s2.empty()));
             else if(halfsiesOrder)
-                stack.emplace(!s1.empty() && n2);
+                stack.emplace(static_cast<double>(!s1.empty() && n2));
             else
-                stack.emplace(!s2.empty() && n1);
+                stack.emplace(static_cast<double>(!s2.empty() && n1));
             break;
 
             case LogicalOperator::Or:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 || n2);
+                stack.emplace(static_cast<double>(n1 || n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(!s1.empty() || !s2.empty());
+                stack.emplace(static_cast<double>(!s1.empty() || !s2.empty()));
             else if(halfsiesOrder)
-                stack.emplace(!s1.empty() || n2);
+                stack.emplace(static_cast<double>(!s1.empty() || n2));
             else
-                stack.emplace(!s2.empty() || n1);
+                stack.emplace(static_cast<double>(!s2.empty() || n1));
             break;
 
             case LogicalOperator::Equals:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 == n2);
+                stack.emplace(static_cast<double>(n1 == n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1 == s2);
+                stack.emplace(static_cast<double>(s1 == s2));
             else if(halfsiesOrder)
-                stack.emplace(s1 == std::to_string(n2));
+                stack.emplace(static_cast<double>(s1 == std::to_string(n2)));
             else
-                stack.emplace(s2 == std::to_string(n1));
+                stack.emplace(static_cast<double>(s2 == std::to_string(n1)));
             break;
 
             case LogicalOperator::NotEquals:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 != n2);
+                stack.emplace(static_cast<double>(n1 != n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1 != s2);
+                stack.emplace(static_cast<double>(s1 != s2));
             else if(halfsiesOrder)
-                stack.emplace(s1 != std::to_string(n2));
+                stack.emplace(static_cast<double>(s1 != std::to_string(n2)));
             else
-                stack.emplace(s2 != std::to_string(n1));
+                stack.emplace(static_cast<double>(s2 != std::to_string(n1)));
             break;
 
             case LogicalOperator::Lesser:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 < n2);
+                stack.emplace(static_cast<double>(n1 < n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1.size() < s2.size());
+                stack.emplace(static_cast<double>(s1.size() < s2.size()));
             else if(halfsiesOrder)
-                stack.emplace(s1.size() < n2);
+                stack.emplace(static_cast<double>(s1.size() < n2));
             else
-                stack.emplace(n1 < s2.size());
+                stack.emplace(static_cast<double>(n1 < s2.size()));
             break;
 
             case LogicalOperator::LesserEquals:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 <= n2);
+                stack.emplace(static_cast<double>(n1 <= n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1.size() <= s2.size());
+                stack.emplace(static_cast<double>(s1.size() <= s2.size()));
             else if(halfsiesOrder)
-                stack.emplace(s1.size() <= n2);
+                stack.emplace(static_cast<double>(s1.size() <= n2));
             else
-                stack.emplace(n1 <= s2.size());
+                stack.emplace(static_cast<double>(n1 <= s2.size()));
             break;
 
             case LogicalOperator::Greater:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 > n2);
+                stack.emplace(static_cast<double>(n1 > n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1.size() > s2.size());
+                stack.emplace(static_cast<double>(s1.size() > s2.size()));
             else if(halfsiesOrder)
-                stack.emplace(s1.size() > n2);
+                stack.emplace(static_cast<double>(s1.size() > n2));
             else
-                stack.emplace(n1 > s2.size());
+                stack.emplace(static_cast<double>(n1 > s2.size()));
             break;
 
             case LogicalOperator::GreaterEquals:
             if(aec == AlgebraicEvaluationCase::AllNum)
-                stack.emplace(n1 >= n2);
+                stack.emplace(static_cast<double>(n1 >= n2));
             else if(aec == AlgebraicEvaluationCase::AllStr)
-                stack.emplace(s1.size() >= s2.size());
+                stack.emplace(static_cast<double>(s1.size() >= s2.size()));
             else if(halfsiesOrder)
-                stack.emplace(s1.size() >= n2);
+                stack.emplace(static_cast<double>(s1.size() >= n2));
             else
-                stack.emplace(n1 >= s2.size());
+                stack.emplace(static_cast<double>(n1 >= s2.size()));
             break;
 
             default: break;
