@@ -1,11 +1,11 @@
-$n < input.in
+$n <- input.in
 
-if ($n <_ 2) {
+if ($n < 2) {
     cp NP
     ce
 }
 
-if ($n <_ 4) {
+if ($n < 4) {
     cp P
     ce
 }
@@ -15,7 +15,7 @@ if ($n % 2 == 0 || $n % 3 == 0) {
     ce
 }
 
-$i < 5
+$i <- 5
 
 while ($i*$i <= $n) {
     if ($n % $i == 0 || $n % ($i+2) == 0) {
@@ -23,7 +23,7 @@ while ($i*$i <= $n) {
         ce
     }
 
-    $i < $i + 6
+    $i <- $i + 6
 }
 
 cp P

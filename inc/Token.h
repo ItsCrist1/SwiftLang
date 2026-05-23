@@ -87,9 +87,9 @@ struct LogicalOperatorToken {
         { "==", LogicalOperator::Equals },
         { "!=", LogicalOperator::NotEquals },
         { "!", LogicalOperator::Not },
-        { "<_", LogicalOperator::Lesser },
+        { "<", LogicalOperator::Lesser },
         { "<=", LogicalOperator::LesserEquals },
-        { "_>", LogicalOperator::Greater },
+        { ">", LogicalOperator::Greater },
         { ">=", LogicalOperator::GreaterEquals }
     };
 
@@ -100,11 +100,11 @@ struct LogicalOperatorToken {
 enum class Sign { RedirectLeft, RedirectRight, AppendLeft, AppendRight };
 
 struct SignToken {
-    static constexpr std::string_view ALL_SIGNS = "<>";
+    static constexpr std::string_view ALL_SIGNS = "-<>";
 
     static inline const std::unordered_map<std::string, Sign> SIGNS = {
-        { ">", Sign::RedirectRight },
-        { "<", Sign::RedirectLeft },
+        { "->", Sign::RedirectRight },
+        { "<-", Sign::RedirectLeft },
         { ">>", Sign::AppendRight },
         { "<<", Sign::AppendLeft },
     };

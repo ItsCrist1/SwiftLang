@@ -40,7 +40,7 @@ void Lexer::pattern(const char c, const char cn, Context& context) {
 }
 
 void Lexer::searchPattern(const char c, const char cn, Context& context) {
-    if(c == '-') {
+    if(c == '-' && !SignToken::ALL_SIGNS.contains(cn)) {
         if(std::isdigit(cn) || SUB_ALLOWANCE_SYMBOLS.contains(cn))
             context.tokens.emplace_back(AlgebraicOperatorToken(AlgebraicOperator::Sub), context.x, context.y);
         else {
@@ -92,8 +92,8 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         return;
     }
 
-    if(!context.pardonPath &&
-    (std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c))) {
+    if(!context.pardonPath
+    && (std::isalpha(c) || KeywordToken::KEYWORD_CHARS.contains(c))) {
         context.currentState = Context::State::Keyword;
         context.target = c;
         context.bidx = context.idx;
@@ -105,7 +105,7 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
         context.currentState = Context::State::Sign;
         context.target = c;
         resetStart(context);
-        context.pardonLp = false;
+        context.pardonLp = context.pardonPath = false;
         return;
     }
 
@@ -142,7 +142,8 @@ void Lexer::keywordPattern(const char c, Context& context) {
         return;
     }
 
-    if(context.target == "/") {
+    if(context.target == "/"
+    || context.target == "-") {
         context.idx = context.bidx;
         context.pardonPath = true;
         resetState(context);
@@ -161,7 +162,6 @@ void Lexer::numberPattern(const char c, Context& context) {
     if(std::isdigit(c) || c == NumericToken::DECIMAL_CHAR) {
         context.target.push_back(c);
         return;
-        
     }
 
     if(NumericToken::NUMBER_EXCEPTIONS.contains(c))

@@ -61,38 +61,38 @@ Redirects work with two arguments:
 - Source
 - Target
 
-| Sign | Source (data producer)           | Target (data receiver)                         |
-|------|----------------------------------|------------------------------------------------|
-| `>`  | Left side's output is captured.  | Right side receives the data.                  |
-| `<`  | Right side's output is captured. | Left side receives the data                    |
-| `>>` | Same as `>`.                     | Same as `>`, except files are **appended** to. |
-| `<<` | Same as `<`.                     | Same as `<`, except files are **appended** to. |
+| Sign | Source (data producer)           | Target (data receiver)                          |
+|------|----------------------------------|-------------------------------------------------|
+| `->` | Left side's output is captured.  | Right side receives the data.                   |
+| `<-` | Right side's output is captured. | Left side receives the data                     |
+| `>>` | Same as `->`.                    | Same as `->`, except files are **appended** to. |
+| `<<` | Same as `<-`.                    | Same as `<-`, except files are **appended** to. |
 
 ### Examples
 
 ```bash
 # Read a file into a variable
-$x < input.in
+$x <- input.in
 
 # Write a command's output to a file (truncating)
-cp hello world > out.txt
+cp hello world -> out.txt
 
 # Append instead of overwrite
 cp another line >> out.txt
 
 # Store the result of an expression in a variable
-$area < 3.14 * $r * $r
+$area <- 3.14 * $r * $r
 
 # Chain a file through a command: read data.txt, feed its tokens as args to cp
-cp < data.txt
+cp <- data.txt
 
 # Pipe one command's output into another as args
-ul -n > cp
+ul -n -> cp
 
 # Capture the output of a loop into a file
-while[$i <_ 10]
+while[$i < 10]
     cp $i
-    $i < $i + 1
+    $i <- $i + 1
 } > numbers.txt
 ```
 
