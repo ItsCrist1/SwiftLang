@@ -41,10 +41,18 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
 
         if(is<ArrNode>(node)) {
             const ArrNode an = as<ArrNode>(node);
+
+            if(an.idx.tns.empty()) {
+                usedOs << context.Arrays[an.arr].size();
+                continue;
+            }
+
             const size_t idx = getArrayIdx(an.idx);
 
             if(context.Arrays[an.arr].size() > idx)
                 usedOs << context.Arrays[an.arr][idx];
+
+            continue;
         }
 
         if(is<AlgebraicNode>(node)) {
@@ -103,8 +111,13 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
 
         if(is<ArrNode>(node)) {
             const ArrNode an = as<ArrNode>(node);
-            const size_t idx = getArrayIdx(an.idx);
 
+            if(an.idx.tns.empty()) {
+                args.emplace_back(std::to_string(context.Arrays[an.arr].size()));
+                continue;
+            }
+
+            const size_t idx = getArrayIdx(an.idx);
             if(context.Arrays[an.arr].size() > idx)
                 args.emplace_back(context.Arrays[an.arr][idx]);
         }
@@ -158,12 +171,17 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         source << getVar(as<VarNode>(*Source).var);
     else if(is<ArrNode>(*Source)) {
         const ArrNode an = as<ArrNode>(*Source);
-        const size_t idx = getArrayIdx(an.idx);
 
-        if(context.Arrays[an.arr].size() <= idx)
-            context.Arrays[an.arr].resize(idx + 1);
+        if(an.idx.tns.empty())
+            source << context.Arrays[an.arr].size();
+        else {
+            const size_t idx = getArrayIdx(an.idx);
 
-        source << context.Arrays[an.arr][idx];
+            if(context.Arrays[an.arr].size() <= idx)
+                context.Arrays[an.arr].resize(idx + 1);
+
+            source << context.Arrays[an.arr][idx];
+        }
     }
     else if(is<AlgebraicNode>(*Source))
         std::visit([&source](const auto& v) { source << v; }, calculator.Evaluate(as<AlgebraicNode>(*Source)));
