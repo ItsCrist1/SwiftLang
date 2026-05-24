@@ -160,8 +160,10 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         const ArrNode an = as<ArrNode>(*Source);
         const size_t idx = getArrayIdx(an.idx);
 
-        if(context.Arrays[an.arr].size() > idx)
-            source << context.Arrays[an.arr][idx];
+        if(context.Arrays[an.arr].size() <= idx)
+            context.Arrays[an.arr].resize(idx + 1);
+
+        source << context.Arrays[an.arr][idx];
     }
     else if(is<AlgebraicNode>(*Source))
         std::visit([&source](const auto& v) { source << v; }, calculator.Evaluate(as<AlgebraicNode>(*Source)));
@@ -193,6 +195,17 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         setVar(as<VarNode>(*Target).var, source.str());
     else if(is<ArrNode>(*Target)) {
         const ArrNode an = as<ArrNode>(*Target);
+
+        if(an.idx.tns.empty()) {
+            auto& arr = context.Arrays[an.arr];
+            arr.resize(targs.size());
+             std::transform(targs.begin(), targs.end(), arr.begin(), [this](const Node& an) {
+                return as<ArgNode>(an).arg;
+             });
+
+            return;
+        }
+
         const size_t idx = getArrayIdx(an.idx);
 
         context.Arrays[an.arr][idx] = source.str();
