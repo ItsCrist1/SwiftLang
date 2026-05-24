@@ -172,8 +172,13 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bo
             if(!operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1))
                 cn.args.emplace_back(parseAlgebraicExpression(context, false));
             else {
-                std::visit([&](const auto& t){ cn.args.emplace_back(t); }, parseVar(context, false));
-                consume(context);
+                Node node;
+                std::visit([&node](const auto& t){ node = Node(t); }, parseVar(context, false));
+
+                if(!operandMode && is<AlgebraicOperatorToken,LogicalOperatorToken>(context))
+                    cn.args.emplace_back(parseAlgebraicExpression(context, false, &node));
+                else
+                    cn.args.emplace_back(std::move(node));
             }
         }
         else
@@ -284,6 +289,7 @@ std::variant<VarNode,ArrNode> Parser::parseVar(Context& context, const bool push
         if(push)
             context.rootNode.nodes.emplace_back(tan);
 
+        consume(context);
         return tan;
     }
 
@@ -296,8 +302,12 @@ std::variant<VarNode,ArrNode> Parser::parseVar(Context& context, const bool push
     return tvn;
 }
 
-AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push) {
+AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push, const Node* node) {
     AlgebraicNode an;
+
+    if(node != nullptr)
+        an.tns.emplace_back(*node);
+
     const Token first = *peek(context);
 
     while(is<KeywordToken,NumericToken,AlgebraicOperatorToken,VariableToken,ParenthesesToken,LogicalOperatorToken,StringToken>(context)) {
@@ -312,10 +322,9 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
             continue;
         }
 
-        if(is<VariableToken>(context)) {
+        if(is<VariableToken>(context))
             std::visit([&] (const auto& t) { an.tns.emplace_back(Node(t)); }, parseVar(context, false));
-            consume(context);
-        } else {
+        else {
             an.tns.emplace_back(*peek(context));
             consume(context);
         }
