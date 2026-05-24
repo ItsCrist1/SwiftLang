@@ -226,6 +226,9 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
 
         const size_t idx = getArrayIdx(an.idx);
 
+        if(context.Arrays[an.arr].size() <= idx)
+            context.Arrays[an.arr].resize(idx + 1);
+
         context.Arrays[an.arr][idx] = source.str();
     }
 

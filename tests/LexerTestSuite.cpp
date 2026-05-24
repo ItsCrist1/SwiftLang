@@ -1,4 +1,4 @@
-#include "lexer-test-suite.h"
+#include "LexerTestSuite.h"
 
 LexerTester::LexerTester(const Lexer& lexer) : lexer(lexer) {}
 
