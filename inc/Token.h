@@ -181,7 +181,7 @@ struct Token {
     TokenValue value;
     size_t x, y;
 
-    bool operator==(const Token&) const = default;
+    bool operator==(const Token& o) const { return value == o.value; }
 };
 
 #endif
