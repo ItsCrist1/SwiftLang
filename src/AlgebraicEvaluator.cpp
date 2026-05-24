@@ -417,9 +417,22 @@ void AlgebraicEvaluator::rearrangeNode(bool& wasOp, AlgebraicNode& output, const
         } catch(const std::exception&) {
             output.tns.emplace_back(Token{KeywordToken(var)});
         }
+
+        flushNeg();
+        wasOp = false;
     }
     else if(std::holds_alternative<ArrNode>(n.value)) {
         const ArrNode an = std::get<ArrNode>(n.value);
+
+        if(an.idx.tns.empty()) {
+            output.tns.emplace_back(Token{NumericToken(
+                static_cast<double>(context.Arrays[an.arr].size())
+            )});
+
+            return;
+        }
+
+
         const AlgebraicEvaluatorOutput aeo = Evaluate(an.idx);
         size_t idx;
 

@@ -196,7 +196,7 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bo
     return Node(std::move(cn), token.x, token.y);
 }
 
-void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, const bool push, const size_t x, const size_t y) {
+void Parser::parseRedirect(Context& context, std::shared_ptr<Node> node, const bool push, const size_t x, const size_t y) {
     const Sign sign = as<SignToken>(context).sign;
     consume(context);
 
@@ -277,7 +277,8 @@ void Parser::parseRedirect(Context& context, const std::shared_ptr<Node>& node, 
 
 std::variant<VarNode,ArrNode> Parser::parseVar(Context& context, const bool push) {
     const Token token = *peek(context);
-    if(is<MiscParenthesesToken>(context,1)) {
+    if(is<MiscParenthesesToken>(context,1)
+    && std::get<MiscParenthesesToken>(peek(context,1)->value).value == MiscParentheses::BodyOpen) {
         const std::string arrNode = as<VariableToken>(context).name;
 
         consume(context);

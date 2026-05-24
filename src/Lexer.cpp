@@ -150,7 +150,9 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
 }
 
 void Lexer::keywordPattern(const char c, Context& context) {
-    if(IsKeywordChar(c)) {
+    if(context.currentKState == Context::KeywordState::Variable
+          ? std::isalnum(static_cast<unsigned char>(c)) || c == '_'
+          : IsKeywordChar(c)) {
         context.target.push_back(c);
         return;
     }

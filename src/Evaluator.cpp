@@ -242,7 +242,8 @@ const std::string& Evaluator::getVar(const std::string& var) const {
     if(const auto it=context.Variables.find(var); it != context.Variables.end())
         return it->second;
 
-    return "";
+    static const std::string empty;
+    return empty;
 }
 
 void Evaluator::setVar(const std::string& var, const std::string& val) {
