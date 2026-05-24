@@ -11,6 +11,8 @@ struct KeywordToken {
 
     std::string cmd;
     explicit KeywordToken(std::string_view);
+
+    bool operator==(const KeywordToken&) const = default;
 };
 
 struct VariableToken {
@@ -18,6 +20,8 @@ struct VariableToken {
 
     std::string name;
     explicit VariableToken(std::string_view);
+
+    bool operator==(const VariableToken&) const = default;
 };
 
 struct FuncToken {
@@ -25,6 +29,8 @@ struct FuncToken {
 
     std::string name;
     explicit FuncToken(std::string_view);
+
+    bool operator==(const FuncToken&) const = default;
 };
 
 struct NumericToken {
@@ -33,6 +39,8 @@ struct NumericToken {
 
     double value;
     explicit NumericToken(double);
+
+    bool operator==(const NumericToken&) const = default;
 };
 
 struct StringToken {
@@ -41,6 +49,8 @@ struct StringToken {
 
     std::string value;
     explicit StringToken(std::string_view);
+
+    bool operator==(const StringToken&) const = default;
 };
 
 enum class Parentheses { FuncOpen, FuncClose };
@@ -53,6 +63,8 @@ struct ParenthesesToken {
 
     Parentheses value;
     explicit ParenthesesToken(Parentheses);
+
+    bool operator==(const ParenthesesToken&) const = default;
 };
 
 enum class MiscParentheses { BodyOpen, BodyClose };
@@ -65,6 +77,8 @@ struct MiscParenthesesToken {
 
     MiscParentheses value;
     explicit MiscParenthesesToken(MiscParentheses);
+
+    bool operator==(const MiscParenthesesToken&) const = default;
 };
 
 enum class FuncParentheses { BodyOpen, BodyClose };
@@ -77,6 +91,8 @@ struct FuncParenthesesToken {
 
     FuncParentheses value;
     explicit FuncParenthesesToken(FuncParentheses);
+
+    bool operator==(const FuncParenthesesToken&) const = default;
 };
 
 enum class AlgebraicOperator { Add, Sub, Mul, Div, Mod, Pow, None };
@@ -93,6 +109,8 @@ struct AlgebraicOperatorToken {
 
     AlgebraicOperator op;
     explicit AlgebraicOperatorToken(AlgebraicOperator);
+
+    bool operator==(const AlgebraicOperatorToken&) const = default;
 };
 
 enum class LogicalOperator { And, Or, Equals, NotEquals, Not, Lesser, LesserEquals, Greater, GreaterEquals };
@@ -114,6 +132,8 @@ struct LogicalOperatorToken {
 
     LogicalOperator op;
     explicit LogicalOperatorToken(LogicalOperator);
+
+    bool operator==(const LogicalOperatorToken&) const = default;
 };
 
 enum class Sign { RedirectLeft, RedirectRight, AppendLeft, AppendRight };
@@ -130,12 +150,16 @@ struct SignToken {
 
     Sign sign;
     explicit SignToken(Sign);
+
+    bool operator==(const SignToken&) const = default;
 };
 
 struct NewlineToken {
     static constexpr std::string_view NEWLINE_CHARS = ";\n";
 
     NewlineToken();
+
+    bool operator==(const NewlineToken&) const = default;
 };
 
 using TokenValue = std::variant<
@@ -156,6 +180,8 @@ using TokenValue = std::variant<
 struct Token {
     TokenValue value;
     size_t x, y;
+
+    bool operator==(const Token&) const = default;
 };
 
 #endif

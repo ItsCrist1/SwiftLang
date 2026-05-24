@@ -11,8 +11,7 @@
 
 using LexerOutput = std::variant<std::vector<Token>, LexerError>;
 
-class Lexer {
-public:
+struct Lexer {
     Lexer();
 
     LexerOutput Lex(std::string_view);
