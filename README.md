@@ -121,8 +121,9 @@ Each node type behaves differently depending on which side of the redirect it si
 | `ur` | Universal Remove | Removes files. Asks for confirmation on risky paths.      | `-r` also delete directories, `-n` skip files (pair with `-r` for dirs-only) |
 
 # Credits
-This project has been manually written entirely by its author with no assistance from AI tools beyond architectural discussions and debugging.
+This project has been manually written mostly by its author with no assistance from AI tools beyond architectural discussions and debugging **except** for the unit test cases which were LLM-generated.
 Uses [CMake](https://cmake.org/)
+Uses [GTest](https://github.com/google/googletest)
 
 # License
 This is licensed under [The MIT License](LICENSE)
