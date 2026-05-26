@@ -111,6 +111,7 @@ inline bool RedirectNode::operator==(const RedirectNode& o) const {
     const auto eq = [](const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) {
         return (!a && !b) || (a && b && *a == *b);
     };
+
     return sign == o.sign && eq(SideLeft, o.SideLeft) && eq(SideRight, o.SideRight);
 }
 
