@@ -197,6 +197,8 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         processIf(as<IfNode>(*Source), source);
     else if(is<WhileNode>(*Source))
         processWhile(as<WhileNode>(*Source), source);
+    else if(is<ForNode>(*Source))
+        processFor(as<ForNode>(*Source), source);
 
     std::istringstream iss (source.str());
     std::vector<Node> targs;

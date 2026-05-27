@@ -5,15 +5,11 @@ while($x % 2 == 0) {
     $x <- $x / 2
 }
 
-$i <- 3
-
-while($i*$i <= $x) {
+for($i <- 3; $i*$i <= $x; $i <- $i + 2) {
     while($x % $i == 0) {
         cp $i
         $x <- $x / $i
     }
-
-    $i <- $i + 2
 }
 
 if($x > 2) {

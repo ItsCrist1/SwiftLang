@@ -364,7 +364,6 @@ IfNode Parser::parseIf(Context& context, const bool push) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     expect<FuncParenthesesToken>(context);
-    consume(context);
 
     const std::vector<Token> ifBody = getBody(context);
     RootNode elseBody;
@@ -373,13 +372,14 @@ IfNode Parser::parseIf(Context& context, const bool push) {
         consume(context);
 
     if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "else") {
-        consume(context);
         if(is<KeywordToken>(context) && as<KeywordToken>(context).cmd == "if") {
             consume(context);
             elseBody.nodes.emplace_back(parseIf(context,false));
         }
-        else
+        else {
+            consume(context);
             elseBody = std::get<RootNode>(Parse(getBody(context)));
+        }
     }
 
     const auto in = IfNode(
@@ -402,9 +402,6 @@ IfNode Parser::parseIf(Context& context, const bool push) {
 
 void Parser::parseWhile(Context& context) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
-
-    expect<FuncParenthesesToken>(context);
-    consume(context);
 
     const std::vector<Token> body = getBody(context);
 
@@ -440,7 +437,6 @@ void Parser::parseFor(Context& context) {
     const RedirectNode iteration = parseRedirect(context, context.lastNode, false, token.x, token.y);
 
     expect<FuncParenthesesToken>(context);
-    consume(context);
 
     const std::vector<Token> body = getBody(context);
 
@@ -448,6 +444,9 @@ void Parser::parseFor(Context& context) {
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
+    if(is<FuncParenthesesToken>(context))
+        consume(context);
+
     int depth = 1;
     std::vector<Token> body;
 

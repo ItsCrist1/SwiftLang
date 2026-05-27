@@ -90,9 +90,8 @@ cp <- data.txt
 ul -n -> cp
 
 # Capture the output of a loop into a file
-while[$i < 10]
+for($i <- 0; $i < 10; $i < $i + 1) {
     cp $i
-    $i <- $i + 1
 } > numbers.txt
 ```
 

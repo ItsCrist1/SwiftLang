@@ -1,20 +1,16 @@
 $v[] <- input.in
 $doSort <- do-sort.in
-$i <- 0
 
 # Sorting
 if($doSort) {
-    while($i < $v[]) {
-        $j <- 0
-        while($j < $v[]-$i-1) {
+    for($i <- 0; $i < $v[]; $i <- $i + 1) {
+        for($j <- 0; $j < $v[]-$i-1; $j <- $j + 1) {
             if($v[$j] > $v[$j+1]) {
                 $t <- $v[$j]
                 $v[$j] <- $v[$j+1]
                 $v[$j+1] <- $t
             }
-            $j <- $j + 1
         }
-        $i <- $i + 1
     }
 }
 # Binary Search
