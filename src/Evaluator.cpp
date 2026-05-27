@@ -75,6 +75,14 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
 
             continue;
         }
+
+        if(is<ForNode>(node)) {
+            if(const auto res = processFor(as<ForNode>(node), usedOs);
+            std::holds_alternative<int>(res) && std::get<int>(res) != 0)
+                return res;
+
+            continue;
+        }
     }
 
     return 0;
@@ -286,6 +294,19 @@ EvaluatorOutput Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
             return result;
 
     return 0;
+}
+
+EvaluatorOutput Evaluator::processFor(const ForNode& fn, std::ostream& os) {
+    int rc = 0;
+    for(processRedirect(fn.declaration, os, {}, rc);
+        getConditionFromAlgebraicEvaluatorOutput(calculator.Evaluate(fn.condition));
+        processRedirect(fn.iteration, os, {}, rc)) {
+        if(const auto result = Evaluate(fn.body, &os);
+            std::holds_alternative<int>(result) && std::get<int>(result) != 0)
+            return result;
+    }
+
+    return rc;
 }
 
 bool Evaluator::getConditionFromAlgebraicEvaluatorOutput(const AlgebraicEvaluatorOutput& aeo) {

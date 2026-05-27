@@ -76,6 +76,14 @@ struct WhileNode {
     bool operator==(const WhileNode&) const;
 };
 
+struct ForNode {
+    RedirectNode declaration, iteration;
+    AlgebraicNode condition;
+    RootNode body;
+
+    bool operator==(const ForNode&) const;
+};
+
 using NodeValue = std::variant <
     CmdNode,
     StringNode,
@@ -85,7 +93,8 @@ using NodeValue = std::variant <
     RedirectNode,
     AlgebraicNode,
     IfNode,
-    WhileNode
+    WhileNode,
+    ForNode
 >;
 
 struct Node {
@@ -104,6 +113,7 @@ inline bool AlgebraicNode::operator==(const AlgebraicNode&) const = default;
 inline bool ArrNode::operator==(const ArrNode&) const = default;
 inline bool IfNode::operator==(const IfNode&) const = default;
 inline bool WhileNode::operator==(const WhileNode&) const = default;
+inline bool ForNode::operator==(const ForNode&) const = default;
 
 inline bool Node::operator==(const Node& o) const { return value == o.value; }
 

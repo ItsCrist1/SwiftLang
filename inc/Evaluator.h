@@ -30,6 +30,7 @@ private:
     void processRedirect(const RedirectNode&, std::ostream&, const std::vector<Node>&, int&);
     EvaluatorOutput processIf(const IfNode&, std::ostream&);
     EvaluatorOutput processWhile(const WhileNode&, std::ostream&);
+    EvaluatorOutput processFor(const ForNode&, std::ostream&);
 
     [[nodiscard]] const std::string& getVar(const std::string&) const;
     void setVar(const std::string&, const std::string&);
