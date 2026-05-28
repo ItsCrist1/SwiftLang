@@ -7,6 +7,8 @@
 #include <vector>
 #include <cstdint>
 #include <filesystem>
+#include <unistd.h>
+#include <sstream>
 
 struct Context;
 
