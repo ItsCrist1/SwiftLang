@@ -17,10 +17,10 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
     return std::move(context.rootNode);
 }
 
-void Parser::parseIteration(Context& context) {
+bool Parser::parseIteration(Context& context) {
     if(is<NewlineToken>(context)) {
         consume(context);
-        return;
+        return true;
     }
 
     if(is<KeywordToken>(context)) {
@@ -29,7 +29,7 @@ void Parser::parseIteration(Context& context) {
             expect<ParenthesesToken>(context);
 
             parseIf(context);
-            return;
+            return false;
         }
 
         if(as<KeywordToken>(context).cmd == "while") {
@@ -37,7 +37,7 @@ void Parser::parseIteration(Context& context) {
             expect<ParenthesesToken>(context);
 
             parseWhile(context);
-            return;
+            return false;
         }
 
         if(as<KeywordToken>(context).cmd == "for") {
@@ -46,24 +46,24 @@ void Parser::parseIteration(Context& context) {
 
             parseFor(context);
 
-            return;
+            return false;
         }
 
         size_t i=1;
         while(is<KeywordToken,StringToken,VariableToken,NumericToken>(context,i++));
         if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,--i)) {
             parseAlgebraicExpression(context);
-            return;
+            return false;
         }
 
         if(parseCmd(context))
-            return;
+            return false;
     }
 
     if(is<SignToken>(context)) {
         const Token token = *peek(context);
         parseRedirect(context, context.lastNode, true, token.x, token.y);
-        return;
+        return false;
     }
 
     if(is<VariableToken>(context)) {
@@ -72,18 +72,18 @@ void Parser::parseIteration(Context& context) {
         else
             parseVar(context);
 
-        return;
+        return false;
     }
 
     if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
         parseAlgebraicExpression(context);
-        return;
+        return false;
     }
 
     if(is<StringToken>(context)) {
         if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1)) {
             parseAlgebraicExpression(context);
-            return;
+            return false;
         }
 
         if(is<SignToken>(context,1)) {
@@ -92,12 +92,12 @@ void Parser::parseIteration(Context& context) {
             consume(context);
 
             parseRedirect(context, std::make_shared<Node>(cn), true, ct.x, ct.y);
-            return;
+            return false;
         }
 
         context.rootNode.nodes.emplace_back(StringNode(as<StringToken>(context).value),  peek(context)->x, peek(context)->y);
         consume(context);
-        return;
+        return false;
     }
 
     consume(context);
@@ -427,9 +427,8 @@ void Parser::parseFor(Context& context) {
     const Token token = *peek(context);
 
     consume(context);
-    parseIteration(context);
 
-    if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
+    if(parseIteration(context) && context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
     || std::holds_alternative<ArrNode>(context.lastNode->value)))
         context.rootNode.nodes.pop_back();
 
@@ -439,9 +438,8 @@ void Parser::parseFor(Context& context) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     consume(context);
-    parseIteration(context);
 
-    if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
+    if(parseIteration(context) && context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
     || std::holds_alternative<ArrNode>(context.lastNode->value)))
         context.rootNode.nodes.pop_back();
 
@@ -456,7 +454,7 @@ void Parser::parseFor(Context& context) {
 
     const std::vector<Token> body = getBody(context);
 
-    context.rootNode.nodes.emplace_back(ForNode(*declaration, *iteration, condition, std::get<RootNode>(Parse(body))));
+    context.rootNode.nodes.emplace_back(ForNode(declaration, iteration, condition, std::get<RootNode>(Parse(body))));
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
