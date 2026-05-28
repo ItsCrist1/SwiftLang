@@ -43,14 +43,14 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
             const ArrNode an = as<ArrNode>(node);
 
             if(an.idx.tns.empty()) {
-                usedOs << context.Arrays[an.arr].size();
+                usedOs << context.Arrays.Get(an.arr).size();
                 continue;
             }
 
             const size_t idx = getArrayIdx(an.idx);
 
-            if(context.Arrays[an.arr].size() > idx)
-                usedOs << context.Arrays[an.arr][idx];
+            if(context.Arrays.Get(an.arr).size() > idx)
+                usedOs << context.Arrays.Get(an.arr)[idx];
 
             continue;
         }
@@ -121,13 +121,13 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
             const ArrNode an = as<ArrNode>(node);
 
             if(an.idx.tns.empty()) {
-                args.emplace_back(std::to_string(context.Arrays[an.arr].size()));
+                args.emplace_back(std::to_string(context.Arrays.Get(an.arr).size()));
                 continue;
             }
 
             const size_t idx = getArrayIdx(an.idx);
-            if(context.Arrays[an.arr].size() > idx)
-                args.emplace_back(context.Arrays[an.arr][idx]);
+            if(context.Arrays.Get(an.arr).size() > idx)
+                args.emplace_back(context.Arrays.Get(an.arr)[idx]);
         }
 
         if(is<AlgebraicNode>(node)) {
@@ -181,14 +181,16 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         const ArrNode an = as<ArrNode>(*Source);
 
         if(an.idx.tns.empty())
-            source << context.Arrays[an.arr].size();
+            source << context.Arrays.Get(an.arr).size();
         else {
             const size_t idx = getArrayIdx(an.idx);
 
-            if(context.Arrays[an.arr].size() <= idx)
-                context.Arrays[an.arr].resize(idx + 1);
+            auto& arr = context.Arrays.GetDynamic(an.arr);
 
-            source << context.Arrays[an.arr][idx];
+            if(arr.size() <= idx)
+                arr.resize(idx + 1);
+
+            source << arr[idx];
         }
     }
     else if(is<AlgebraicNode>(*Source))
@@ -225,7 +227,7 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
         const ArrNode an = as<ArrNode>(*Target);
 
         if(an.idx.tns.empty()) {
-            auto& arr = context.Arrays[an.arr];
+            auto& arr = context.Arrays.GetDynamic(an.arr);
             arr.resize(targs.size());
              std::transform(targs.begin(), targs.end(), arr.begin(), [this](const Node& an) {
                 return as<ArgNode>(an).arg;
@@ -236,10 +238,12 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
 
         const size_t idx = getArrayIdx(an.idx);
 
-        if(context.Arrays[an.arr].size() <= idx)
-            context.Arrays[an.arr].resize(idx + 1);
+        auto& arr = context.Arrays.GetDynamic(an.arr);
 
-        context.Arrays[an.arr][idx] = source.str();
+        if(arr.size() <= idx)
+            arr.resize(idx + 1);
+
+        arr[idx] = source.str();
     }
 
     if(isFile) {
@@ -252,18 +256,11 @@ void Evaluator::processRedirect(const RedirectNode& redirect, std::ostream& os, 
 }
 
 const std::string& Evaluator::getVar(const std::string& var) const {
-    if(const auto it=context.Variables.find(var); it != context.Variables.end())
-        return it->second;
-
-    static const std::string empty;
-    return empty;
+    return context.Variables.Get(var);
 }
 
 void Evaluator::setVar(const std::string& var, const std::string& val) {
-    if(const auto it=context.Variables.find(var); it != context.Variables.end())
-        it->second = val;
-    else
-        context.Variables.emplace(var, val);
+    context.Variables.Set(var, val);
 }
 
 size_t Evaluator::getArrayIdx(const AlgebraicNode& an) {

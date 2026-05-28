@@ -361,7 +361,7 @@ void AlgebraicEvaluator::rearrangeToken(bool& wasOp, bool& toAddSub, AlgebraicNo
 
         stack.emplace(t);
     } else if(std::holds_alternative<VariableToken>(t.value)) {
-        const std::string& var = context.Variables.at(std::get<VariableToken>(t.value).name);
+        const std::string& var = context.Variables.Get(std::get<VariableToken>(t.value).name);
 
         try {
             output.tns.emplace_back(Token{NumericToken(std::stod(var))});
@@ -410,7 +410,7 @@ void AlgebraicEvaluator::rearrangeNode(bool& wasOp, AlgebraicNode& output, const
         flushNeg();
         wasOp = false;
     } else if(std::holds_alternative<VarNode>(n.value)) {
-        const std::string& var = context.Variables[std::get<VarNode>(n.value).var];
+        const std::string& var = context.Variables.Get(std::get<VarNode>(n.value).var);
 
         try {
             output.tns.emplace_back(Token{NumericToken(std::stod(var))});
@@ -426,7 +426,7 @@ void AlgebraicEvaluator::rearrangeNode(bool& wasOp, AlgebraicNode& output, const
 
         if(an.idx.tns.empty()) {
             output.tns.emplace_back(Token{NumericToken(
-                static_cast<double>(context.Arrays[an.arr].size())
+                static_cast<double>(context.Arrays.Get(an.arr).size())
             )});
 
             return;
@@ -445,9 +445,9 @@ void AlgebraicEvaluator::rearrangeNode(bool& wasOp, AlgebraicNode& output, const
                 idx = 0u;
             }
 
-        const std::string str = context.Arrays[an.arr][idx];
+        const std::string str = context.Arrays.Get(an.arr)[idx];
 
-        if(context.Arrays[an.arr].size() > idx)
+        if(context.Arrays.Get(an.arr).size() > idx)
             try {
                 output.tns.emplace_back(Token{NumericToken(std::stod(str))});
             } catch(const std::exception&) {
