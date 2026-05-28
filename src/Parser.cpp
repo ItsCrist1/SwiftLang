@@ -434,21 +434,30 @@ void Parser::parseFor(Context& context) {
         context.rootNode.nodes.pop_back();
 
     const std::optional<RedirectNode> declaration = parseRedirect(context, context.lastNode, false, token.x, token.y);
-    consume(context);
+
+    if(declaration)
+        consume(context);
 
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     consume(context);
-    parseIteration(context);
+
+    const bool isEmptyIteration = is<ParenthesesToken>(context);
+
+    if(isEmptyIteration)
+        consume(context);
+    else
+        parseIteration(context);
 
     if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
     || std::holds_alternative<ArrNode>(context.lastNode->value)))
         context.rootNode.nodes.pop_back();
 
-    context.tokens.insert(
-        context.tokens.begin() + context.idx + 1,
-        Token{ ParenthesesToken(Parentheses::FuncOpen), token.x, token.y }
-    );
+    if(!isEmptyIteration)
+        context.tokens.insert(
+            context.tokens.begin() + context.idx + 1,
+            Token{ ParenthesesToken(Parentheses::FuncOpen), token.x, token.y }
+        );
 
     const std::optional<RedirectNode> iteration = parseRedirect(context, context.lastNode, false, token.x, token.y);
 
@@ -456,7 +465,7 @@ void Parser::parseFor(Context& context) {
 
     const std::vector<Token> body = getBody(context);
 
-    context.rootNode.nodes.emplace_back(ForNode(*declaration, *iteration, condition, std::get<RootNode>(Parse(body))));
+    context.rootNode.nodes.emplace_back(ForNode(declaration, iteration, condition, std::get<RootNode>(Parse(body))));
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
