@@ -33,7 +33,7 @@ private:
     template<typename T>
     bool expect(Context&) const;
 
-    bool parseIteration(Context&);
+    void parseIteration(Context&);
 
     std::optional<Node> parseCmd(Context& context, bool push=true, bool operandMode=false);
     std::optional<RedirectNode> parseRedirect(Context&, std::shared_ptr<Node>, bool, size_t, size_t);

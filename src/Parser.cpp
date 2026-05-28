@@ -370,8 +370,6 @@ AlgebraicNode Parser::parseAlgebraicExpression(Context& context, const bool push
 IfNode Parser::parseIf(Context& context, const bool push) {
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
-    expect<FuncParenthesesToken>(context);
-
     const std::vector<Token> ifBody = getBody(context);
     RootNode elseBody;
 
@@ -425,8 +423,8 @@ void Parser::parseWhile(Context& context) {
 
 void Parser::parseFor(Context& context) {
     const Token token = *peek(context);
-
     consume(context);
+
     parseIteration(context);
 
     if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
@@ -461,21 +459,25 @@ void Parser::parseFor(Context& context) {
 
     const std::optional<RedirectNode> iteration = parseRedirect(context, context.lastNode, false, token.x, token.y);
 
-    expect<FuncParenthesesToken>(context);
-
     const std::vector<Token> body = getBody(context);
 
     context.rootNode.nodes.emplace_back(ForNode(declaration, iteration, condition, std::get<RootNode>(Parse(body))));
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
+    bool singleLineMode = false;
+
     if(is<FuncParenthesesToken>(context))
         consume(context);
+    else {
+        singleLineMode = true;
+        consume(context);
+    }
 
     int depth = 1;
     std::vector<Token> body;
 
-    while(depth != 0) {
+    while(!singleLineMode ? depth != 0 : !is<NewlineToken>(context)) {
         auto opt = peek(context);
         if(!opt) break;
         const Token& t = *opt;
