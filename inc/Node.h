@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 
 struct Node;
 
@@ -77,7 +78,7 @@ struct WhileNode {
 };
 
 struct ForNode {
-    RedirectNode declaration, iteration;
+    std::optional<RedirectNode> declaration, iteration;
     AlgebraicNode condition;
     RootNode body;
 

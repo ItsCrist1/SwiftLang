@@ -297,12 +297,17 @@ EvaluatorOutput Evaluator::processWhile(const WhileNode& wn, std::ostream& os) {
 
 EvaluatorOutput Evaluator::processFor(const ForNode& fn, std::ostream& os) {
     int rc = 0;
-    for(processRedirect(fn.declaration, os, {}, rc);
-        getConditionFromAlgebraicEvaluatorOutput(calculator.Evaluate(fn.condition));
-        processRedirect(fn.iteration, os, {}, rc)) {
+
+    if(fn.declaration)
+        processRedirect(*fn.declaration, os, {}, rc);
+
+    while(getConditionFromAlgebraicEvaluatorOutput(calculator.Evaluate(fn.condition))) {
         if(const auto result = Evaluate(fn.body, &os);
             std::holds_alternative<int>(result) && std::get<int>(result) != 0)
             return result;
+
+        if(fn.iteration)
+            processRedirect(*fn.iteration, os, {}, rc);
     }
 
     return rc;

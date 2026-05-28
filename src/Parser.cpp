@@ -11,92 +11,96 @@ ParserOutput Parser::Parse(const std::vector<Token>& tokens) {
         if(context.error)
             return context.error.value();
 
-        if(is<NewlineToken>(context)) {
-            consume(context);
-            continue;
-        }
-
-        if(is<KeywordToken>(context)) {
-            if(as<KeywordToken>(context).cmd == "if") {
-                consume(context);
-                expect<ParenthesesToken>(context);
-
-                parseIf(context);
-                continue;
-            }
-
-            if(as<KeywordToken>(context).cmd == "while") {
-                consume(context);
-                expect<ParenthesesToken>(context);
-
-                parseWhile(context);
-                continue;
-            }
-
-            if(as<KeywordToken>(context).cmd == "for") {
-                consume(context);
-                expect<ParenthesesToken>(context);
-
-                parseFor(context);
-
-                continue;
-            }
-
-            size_t i=1;
-            while(is<KeywordToken,StringToken,VariableToken,NumericToken>(context,i++));
-            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,--i)) {
-                parseAlgebraicExpression(context);
-                continue;
-            }
-
-            if(parseCmd(context))
-                continue;
-        }
-
-        if(is<SignToken>(context)) {
-            const Token token = *peek(context);
-            parseRedirect(context, context.lastNode, true, token.x, token.y);
-            continue;
-        }
-
-        if(is<VariableToken>(context)) {
-            if(is<NumericToken,AlgebraicOperatorToken>(context,1))
-                parseAlgebraicExpression(context);
-            else
-                parseVar(context);
-
-            continue;
-        }
-
-        if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
-            parseAlgebraicExpression(context);
-            continue;
-        }
-
-        if(is<StringToken>(context)) {
-            if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1)) {
-                parseAlgebraicExpression(context);
-                continue;
-            }
-
-            if(is<SignToken>(context,1)) {
-                const auto cn = StringNode(as<StringToken>(context).value);
-                const Token ct = *peek(context);
-                consume(context);
-
-                parseRedirect(context, std::make_shared<Node>(cn), true, ct.x, ct.y);
-                continue;
-            }
-
-            context.rootNode.nodes.emplace_back(StringNode(as<StringToken>(context).value),  peek(context)->x, peek(context)->y);
-            consume(context);
-            continue;
-        }
-
-        consume(context);
+        parseIteration(context);
     }
 
     return std::move(context.rootNode);
+}
+
+void Parser::parseIteration(Context& context) {
+    if(is<NewlineToken>(context)) {
+        consume(context);
+        return;
+    }
+
+    if(is<KeywordToken>(context)) {
+        if(as<KeywordToken>(context).cmd == "if") {
+            consume(context);
+            expect<ParenthesesToken>(context);
+
+            parseIf(context);
+            return;
+        }
+
+        if(as<KeywordToken>(context).cmd == "while") {
+            consume(context);
+            expect<ParenthesesToken>(context);
+
+            parseWhile(context);
+            return;
+        }
+
+        if(as<KeywordToken>(context).cmd == "for") {
+            consume(context);
+            expect<ParenthesesToken>(context);
+
+            parseFor(context);
+
+            return;
+        }
+
+        size_t i=1;
+        while(is<KeywordToken,StringToken,VariableToken,NumericToken>(context,i++));
+        if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,--i)) {
+            parseAlgebraicExpression(context);
+            return;
+        }
+
+        if(parseCmd(context))
+            return;
+    }
+
+    if(is<SignToken>(context)) {
+        const Token token = *peek(context);
+        parseRedirect(context, context.lastNode, true, token.x, token.y);
+        return;
+    }
+
+    if(is<VariableToken>(context)) {
+        if(is<NumericToken,AlgebraicOperatorToken>(context,1))
+            parseAlgebraicExpression(context);
+        else
+            parseVar(context);
+
+        return;
+    }
+
+    if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
+        parseAlgebraicExpression(context);
+        return;
+    }
+
+    if(is<StringToken>(context)) {
+        if(is<AlgebraicOperatorToken,LogicalOperatorToken>(context,1)) {
+            parseAlgebraicExpression(context);
+            return;
+        }
+
+        if(is<SignToken>(context,1)) {
+            const auto cn = StringNode(as<StringToken>(context).value);
+            const Token ct = *peek(context);
+            consume(context);
+
+            parseRedirect(context, std::make_shared<Node>(cn), true, ct.x, ct.y);
+            return;
+        }
+
+        context.rootNode.nodes.emplace_back(StringNode(as<StringToken>(context).value),  peek(context)->x, peek(context)->y);
+        consume(context);
+        return;
+    }
+
+    consume(context);
 }
 
 std::optional<Token> Parser::peek(const Context& context, const size_t offset) const {
@@ -205,7 +209,10 @@ std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bo
     return Node(std::move(cn), token.x, token.y);
 }
 
-RedirectNode Parser::parseRedirect(Context& context, std::shared_ptr<Node> node, const bool push, const size_t x, const size_t y) {
+std::optional<RedirectNode> Parser::parseRedirect(Context& context, std::shared_ptr<Node> node, const bool push, const size_t x, const size_t y) {
+    if(!is<SignToken>(context))
+        return std::nullopt;
+
     const Sign sign = as<SignToken>(context).sign;
     consume(context);
 
@@ -418,29 +425,38 @@ void Parser::parseWhile(Context& context) {
 
 void Parser::parseFor(Context& context) {
     const Token token = *peek(context);
-    consume(context);
-    parseVar(context);
 
-    const RedirectNode declaration = parseRedirect(context, context.lastNode, false, token.x, token.y);
+    consume(context);
+    parseIteration(context);
+
+    if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
+    || std::holds_alternative<ArrNode>(context.lastNode->value)))
+        context.rootNode.nodes.pop_back();
+
+    const std::optional<RedirectNode> declaration = parseRedirect(context, context.lastNode, false, token.x, token.y);
     consume(context);
 
     const AlgebraicNode condition = parseAlgebraicExpression(context, false);
 
     consume(context);
-    parseVar(context);
+    parseIteration(context);
+
+    if(context.lastNode != nullptr && !(std::holds_alternative<VarNode>(context.lastNode->value)
+    || std::holds_alternative<ArrNode>(context.lastNode->value)))
+        context.rootNode.nodes.pop_back();
 
     context.tokens.insert(
         context.tokens.begin() + context.idx + 1,
         Token{ ParenthesesToken(Parentheses::FuncOpen), token.x, token.y }
     );
 
-    const RedirectNode iteration = parseRedirect(context, context.lastNode, false, token.x, token.y);
+    const std::optional<RedirectNode> iteration = parseRedirect(context, context.lastNode, false, token.x, token.y);
 
     expect<FuncParenthesesToken>(context);
 
     const std::vector<Token> body = getBody(context);
 
-    context.rootNode.nodes.emplace_back(ForNode(declaration, iteration, condition, std::get<RootNode>(Parse(body))));
+    context.rootNode.nodes.emplace_back(ForNode(*declaration, *iteration, condition, std::get<RootNode>(Parse(body))));
 }
 
 std::vector<Token> Parser::getBody(Context& context) {
