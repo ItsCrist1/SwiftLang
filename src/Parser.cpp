@@ -200,7 +200,11 @@ void Parser::parseFunc(Context& context) {
         return;
     }
 
+    FuncCallNode fcn;
+    fcn.name = funcName;
+    fcn.params = std::move(vars);
 
+    context.rootNode.nodes.emplace_back(fcn);
 }
 
 std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bool operandMode) {

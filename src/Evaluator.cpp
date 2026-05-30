@@ -89,6 +89,17 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
             context.Funcs.emplace(fdn.name, fdn);
             continue;
         }
+
+        if(is<FuncCallNode>(node)) {
+            const FuncCallNode fcn = as<FuncCallNode>(node);
+            const FuncDeclarationNode& fdn = context.Funcs[fcn.name];
+
+            for(size_t i=0; i < fcn.params.size(); ++i)
+                context.Variables.Set(std::get<VarNode>(fdn.vars[i]).var, as<StringNode>(fcn.params[i]).str);
+
+            Evaluate(fdn.body, &usedOs);
+            continue;
+        }
     }
 
     return 0;

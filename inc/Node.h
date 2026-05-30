@@ -94,7 +94,7 @@ struct FuncDeclarationNode {
 };
 
 struct FuncCallNode {
-    std::string func;
+    std::string name;
     std::vector<Node> params;
 
     bool operator==(const FuncCallNode&) const;
@@ -111,7 +111,8 @@ using NodeValue = std::variant <
     IfNode,
     WhileNode,
     ForNode,
-    FuncDeclarationNode
+    FuncDeclarationNode,
+    FuncCallNode
 >;
 
 struct Node {
