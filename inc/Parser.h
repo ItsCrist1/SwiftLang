@@ -35,6 +35,8 @@ private:
 
     void parseIteration(Context&);
 
+    void parseFunc(Context&);
+
     std::optional<Node> parseCmd(Context& context, bool push=true, bool operandMode=false);
     std::optional<RedirectNode> parseRedirect(Context&, std::shared_ptr<Node>, bool, size_t, size_t);
     std::variant<VarNode,ArrNode> parseVar(Context&, bool push=true);

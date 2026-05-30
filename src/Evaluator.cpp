@@ -83,6 +83,12 @@ EvaluatorOutput Evaluator::Evaluate(const RootNode& rn, std::ostream* os) {
 
             continue;
         }
+
+        if(is<FuncDeclarationNode>(node)) {
+            const FuncDeclarationNode fdn = as<FuncDeclarationNode>(node);
+            context.Funcs.emplace(fdn.name, fdn);
+            continue;
+        }
     }
 
     return 0;
@@ -128,6 +134,8 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
             const size_t idx = getArrayIdx(an.idx);
             if(context.Arrays.Get(an.arr).size() > idx)
                 args.emplace_back(context.Arrays.Get(an.arr)[idx]);
+
+            continue;
         }
 
         if(is<AlgebraicNode>(node)) {
@@ -135,6 +143,7 @@ bool Evaluator::processCmd(const CmdNode& cmd, std::ostream& os, int& returnCode
             args.emplace_back(std::holds_alternative<std::string>(aeo)
                 ? std::get<std::string>(aeo)
                 : std::to_string(std::get<double>(aeo)));
+
             continue;
         }
     }
@@ -319,4 +328,6 @@ bool Evaluator::getConditionFromAlgebraicEvaluatorOutput(const AlgebraicEvaluato
 
     if(std::holds_alternative<std::string>(aeo))
         return !std::get<std::string>(aeo).empty();
+
+    return false;
 }

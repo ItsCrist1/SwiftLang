@@ -144,9 +144,6 @@ void Lexer::searchPattern(const char c, const char cn, Context& context) {
 
     if(WHITESPACE.contains(c))
         return;
-
-    if(c != FUNNEL_END_CHAR)
-        context.error = LexerError(std::format("Unknown character encountered: {}", c), context.x, context.y);
 }
 
 void Lexer::keywordPattern(const char c, Context& context) {

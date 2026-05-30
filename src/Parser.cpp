@@ -75,6 +75,11 @@ void Parser::parseIteration(Context& context) {
         return;
     }
 
+    if(is<FuncToken>(context)) {
+        parseFunc(context);
+        return;
+    }
+
     if(is<NumericToken,AlgebraicOperatorToken,ParenthesesToken>(context)) {
         parseAlgebraicExpression(context);
         return;
@@ -146,6 +151,56 @@ bool Parser::expect(Context& context) const {
     }
 
     return true;
+}
+
+void Parser::parseFunc(Context& context) {
+    const std::string funcName = as<FuncToken>(context).name;
+    consume(context);
+
+    expect<ParenthesesToken>(context);
+    consume(context);
+    std::vector<Node> vars;
+    bool isVar = true;
+
+    while(is<StringToken,VariableToken>(context)) {
+        if(is<VariableToken>(context)) {
+            std::visit([&](const auto& t) { vars.emplace_back(t); }, parseVar(context, false));
+            continue;
+        }
+
+        isVar = false;
+
+        if(is<StringToken>(context)) {
+            vars.emplace_back(StringNode(as<StringToken>(context).value));
+            consume(context);
+            continue;
+        }
+    }
+
+    consume(context);
+
+    if(is<FuncParenthesesToken>(context) && isVar) {
+        FuncDeclarationNode fdn;
+        fdn.name = funcName;
+
+        fdn.vars.resize(vars.size());
+        std::transform(vars.begin(), vars.end(), fdn.vars.begin(), [](const Node& node) {
+            return std::visit([&]<typename T>(const T& t) -> std::variant<VarNode,ArrNode> {
+                if constexpr(std::is_same_v<std::decay_t<T>,VarNode> ||
+                             std::is_same_v<std::decay_t<T>,ArrNode>)
+                    return t;
+                else
+                    throw std::logic_error("Unreachable");
+            }, node.value);
+        });
+
+        fdn.body = std::get<RootNode>(Parse(getBody(context)));
+
+        context.rootNode.nodes.emplace_back(fdn);
+        return;
+    }
+
+
 }
 
 std::optional<Node> Parser::parseCmd(Context& context, const bool push, const bool operandMode) {

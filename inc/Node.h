@@ -85,6 +85,21 @@ struct ForNode {
     bool operator==(const ForNode&) const;
 };
 
+struct FuncDeclarationNode {
+    std::string name;
+    std::vector<std::variant<VarNode,ArrNode>> vars;
+    RootNode body;
+
+    bool operator==(const FuncDeclarationNode&) const;
+};
+
+struct FuncCallNode {
+    std::string func;
+    std::vector<Node> params;
+
+    bool operator==(const FuncCallNode&) const;
+};
+
 using NodeValue = std::variant <
     CmdNode,
     StringNode,
@@ -95,7 +110,8 @@ using NodeValue = std::variant <
     AlgebraicNode,
     IfNode,
     WhileNode,
-    ForNode
+    ForNode,
+    FuncDeclarationNode
 >;
 
 struct Node {
@@ -115,6 +131,8 @@ inline bool ArrNode::operator==(const ArrNode&) const = default;
 inline bool IfNode::operator==(const IfNode&) const = default;
 inline bool WhileNode::operator==(const WhileNode&) const = default;
 inline bool ForNode::operator==(const ForNode&) const = default;
+inline bool FuncDeclarationNode::operator==(const FuncDeclarationNode&) const = default;
+inline bool FuncCallNode::operator==(const FuncCallNode&) const = default;
 
 inline bool Node::operator==(const Node& o) const { return value == o.value; }
 
